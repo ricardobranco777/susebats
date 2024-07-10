@@ -29,7 +29,7 @@ Default repositories:
 Example output:
 
 ```
-opensuse-Tumbleweed-DVD-aarch64
+opensuse-Tumbleweed-DVD-aarch64     https://openqa.opensuse.org/tests/latest?arch=aarch64&test=containers_host_podman_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed
 	AARDVARK_BATS_SKIP="100-basic-name-resolution 200-two-networks 300-three-networks 500-reverse-lookups"
 	NETAVARK_BATS_SKIP="001-basic 100-bridge-iptables 200-bridge-firewalld 250-bridge-nftables 500-plugin"
 	PODMAN_BATS_SKIP="125-import"

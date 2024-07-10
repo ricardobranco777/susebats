@@ -11,6 +11,7 @@ import sys
 import tarfile
 from fnmatch import fnmatch
 from typing import Iterator
+from urllib.parse import urlencode
 
 import requests
 from requests.exceptions import RequestException
@@ -39,13 +40,25 @@ def find_file(file: io.TextIOWrapper) -> None:
     if "scenarios" not in data:
         return
 
-    for products in data["scenarios"].values():
-        for product, tests in products.items():
-            for test in filter(lambda t: isinstance(t, dict), tests):
-                for job in sorted(filter(TESTSUITE.search, test.keys())):
-                    print(f"{product}\t{job}")
-                    for setting in sorted(filter(SKIP.search, test[job]["settings"])):
-                        print(f"\t{setting}='{test[job]['settings'][setting]}'")
+    products = data["products"]
+
+    for arch, scenario in data["scenarios"].items():
+        for product, tests in scenario.items():
+            for info in filter(lambda t: isinstance(t, dict), tests):
+                for test in sorted(filter(TESTSUITE.search, info.keys())):
+                    if product.startswith("opensuse"):
+                        url = "https://openqa.opensuse.org"
+                    else:
+                        url = "https://openqa.suse.de"
+                    params = {
+                        "arch": arch,
+                        "test": test,
+                    }
+                    params |= products[product]
+                    url += "/tests/latest?" + urlencode(params)
+                    print(f"{product}\t{url}")
+                    for setting in sorted(filter(SKIP.search, info[test]["settings"])):
+                        print(f"\t{setting}='{info[test]['settings'][setting]}'")
 
 
 def grep_dir(

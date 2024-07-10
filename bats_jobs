@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""
+List BATS jobs on o.s.d & o3
+"""
+
+import argparse
+import os
+import sys
+from concurrent.futures import ThreadPoolExecutor
+from dataclasses import dataclass
+from urllib.parse import urlparse
+
+from lxml import html
+import requests
+from requests.exceptions import RequestException
+
+
+TIMEOUT = 30
+
+# TO DO:
+# Get these URL's from YAML schedules
+URLS = (
+    "https://openqa.opensuse.org/tests/latest?arch=x86_64&test=containers_host_podman_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed",
+    "https://openqa.opensuse.org/tests/latest?arch=x86_64&test=containers_host_buildah_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed",
+    "https://openqa.opensuse.org/tests/latest?arch=aarch64&test=containers_host_podman_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP3",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP4",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=buildah_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP4",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP5",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=buildah_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP5",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP6",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=buildah_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP6",
+    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP3",
+    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP4",
+    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP5",
+    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP6",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
+    "https://openqa.suse.de/tests/latest?arch=aarch64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
+    "https://openqa.suse.de/tests/latest?arch=aarch64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
+    "https://openqa.suse.de/tests/latest?arch=x86_64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
+)
+
+session = requests.Session()
+
+
+@dataclass
+class Job:
+    """
+    Job class
+    """
+
+    name: str
+    result: str
+    url: str
+
+
+def get_job_id(url: str) -> int | None:
+    """
+    Get job ID from URL with no job ID in URL
+    """
+    try:
+        got = session.get(url, timeout=TIMEOUT)
+        got.raise_for_status()
+    except RequestException as error:
+        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        return None
+    tree = html.fromstring(got.text)
+    elem = tree.xpath('//*[@id="info_box"]/div[1]/i/a')
+    return int(elem[0].text_content().removeprefix("#"))  # type: ignore
+
+
+def get_job(url_string: str) -> Job | None:
+    """
+    Get a job
+    """
+    if not url_string.startswith(("http:", "https:")):
+        url_string = f"https://{url_string}"
+    url = urlparse(url_string)
+
+    if url.query:
+        job_id = get_job_id(url_string)
+        if job_id is None:
+            return None
+    else:
+        job_id = int(os.path.basename(url.path).removeprefix("t"))
+
+    api_url = f"{url.scheme}://{url.netloc}/api/v1/jobs/{job_id}"
+
+    try:
+        got = session.get(api_url, timeout=TIMEOUT)
+        got.raise_for_status()
+    except RequestException as error:
+        print(f"ERROR: {api_url}: {error}", file=sys.stderr)
+        return None
+    info = got.json()["job"]
+    return Job(
+        name=info["name"],
+        result=info["result"],
+        url=f"{url.scheme}://{url.netloc}/tests/{job_id}",
+    )
+
+
+def main() -> None:
+    """
+    Main function
+    """
+    parser = argparse.ArgumentParser(
+        prog="bats_jobs",
+        description="list BATS jobs in o.s.d & o3",
+    )
+    parser.add_argument("urls", nargs="*", default=URLS, metavar="url")
+    args = parser.parse_args()
+
+    with ThreadPoolExecutor(max_workers=min(10, len(args.urls))) as executor:
+        for job in executor.map(get_job, args.urls):
+            if job is None:
+                continue
+            result = job.result.upper() if job.result == "failed" else job.result
+            print(f"{result}  {job.url:<42}  {job.name}")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(1)

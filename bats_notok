@@ -1,0 +1,125 @@
+#!/usr/bin/env python3
+"""
+Generate BATS_SKIP variables from an openQA job URL
+"""
+
+import argparse
+import contextlib
+import logging
+import os
+import re
+import sys
+import tempfile
+from concurrent.futures import ThreadPoolExecutor
+from functools import reduce
+from itertools import groupby
+from urllib.parse import urljoin, urlparse
+
+import requests
+from requests.exceptions import RequestException
+
+
+TIMEOUT = 10
+
+
+def download_file(url: str) -> str | None:
+    """
+    Download a file from URL to current directory
+    """
+    filename = os.path.basename(url)
+    try:
+        with requests.get(url, stream=True, timeout=TIMEOUT) as r:
+            r.raise_for_status()
+            with open(filename, "xb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+    except RequestException as error:
+        logging.error("%s: %s", url, error)
+        return None
+    return filename
+
+
+def grep_notok(file: str) -> set[str]:
+    """
+    Find the failed tests in a .tap file
+    """
+    tests = set()
+    with open(file, encoding="utf-8") as f:
+        failed = [line for line in f.read().splitlines() if "in test file" in line]
+    for fail in failed:
+        test = re.findall(r"/(.*?\.bats)", fail)[0]
+        tests.add(os.path.basename(test.removesuffix(".bats")))
+    return tests
+
+
+def process_files(files: list[str]) -> None:
+    """
+    Process .tap files
+    """
+    skip_common = set()
+    found: dict[str, set] = {}
+    for file in files:
+        found[file] = grep_notok(file)
+    # Find failed subtests in all scenarios for general skip variable
+    skip_common = reduce(lambda x, y: x & y, found.values())
+    if len(files) > 1:
+        for file in files:
+            found[file] -= skip_common
+
+    prefix = files[0].split("_integration")[0].upper() + "_BATS_SKIP"
+    skip = " ".join(sorted(skip_common)) or "none"
+    print(f"{prefix}='{skip}'")
+    if len(files) == 1:
+        return
+    for file in files:
+        name = re.findall(r"-((?:root|user)(?:-(?:local|remote))?)\.tap$", file)[0]
+        name = name.replace("-", "_").upper()
+        skip = " ".join(sorted(found[file])) or "none"
+        print(f"{prefix}_{name}='{skip}'")
+
+
+def main() -> None:
+    """
+    Main function
+    """
+    parser = argparse.ArgumentParser(
+        description="Generate BATS_SKIP variables from an openQA job URL"
+    )
+    parser.add_argument("url", help="openQA job")
+    args = parser.parse_args()
+
+    url = urlparse(args.url)
+    if not url.scheme:
+        url = urlparse(f"https://{args.url}")
+    base_url = f"{url.scheme}://{url.netloc}"
+    job_id = os.path.basename(url.path).removeprefix("t")
+
+    try:
+        got = requests.get(f"{base_url}/api/v1/jobs/{job_id}/details", timeout=TIMEOUT)
+        got.raise_for_status()
+    except RequestException as error:
+        logging.error("%s: %s", args.url, error)
+        sys.exit(1)
+    # Get list of logs
+    filenames = filter(lambda s: s.endswith(".tap"), got.json()["job"]["ulogs"])
+
+    base_url = urljoin(base_url, f"tests/{job_id}/file/")
+    with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
+        file_urls = [urljoin(base_url, filename) for filename in filenames]
+
+        with ThreadPoolExecutor() as executor:
+            downloaded_files = filter(None, executor.map(download_file, file_urls))
+
+        # Group multiple .tap files by their prefixes:
+        # (podman|buildah|etc)_integration_.*.tap
+        for _, files in groupby(
+            downloaded_files, key=lambda s: s.split("_integration")[0]
+        ):
+            process_files(list(files))
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except KeyboardInterrupt:
+        sys.exit(1)

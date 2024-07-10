@@ -6,6 +6,21 @@ Display information on BATS tests in openQA
 
 Docker image available at `ghcr.io/ricardobranco777/susebats:latest`
 
+## bats_jobs
+
+```
+usage: bats_jobs [-h] [-v] [url ...]
+
+list BATS jobs in o.s.d & o3
+
+positional arguments:
+  url
+
+options:
+  -h, --help     show this help message and exit
+  -v, --verbose
+```
+
 ## bats_list
 
 ```

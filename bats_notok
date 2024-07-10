@@ -20,6 +20,8 @@ from requests.exceptions import RequestException
 
 TIMEOUT = 10
 
+session = requests.Session()
+
 
 def download_file(url: str) -> str | None:
     """
@@ -27,7 +29,7 @@ def download_file(url: str) -> str | None:
     """
     filename = os.path.basename(url)
     try:
-        with requests.get(url, stream=True, timeout=TIMEOUT) as r:
+        with session.get(url, stream=True, timeout=TIMEOUT) as r:
             r.raise_for_status()
             with open(filename, "xb") as f:
                 for chunk in r.iter_content(chunk_size=8192):
@@ -94,7 +96,7 @@ def main() -> None:
     job_id = os.path.basename(url.path).removeprefix("t")
 
     try:
-        got = requests.get(f"{base_url}/api/v1/jobs/{job_id}/details", timeout=TIMEOUT)
+        got = session.get(f"{base_url}/api/v1/jobs/{job_id}/details", timeout=TIMEOUT)
         got.raise_for_status()
     except RequestException as error:
         sys.exit(f"ERROR: {url}: {error}")
@@ -121,3 +123,5 @@ if __name__ == "__main__":
         main()
     except KeyboardInterrupt:
         sys.exit(1)
+    finally:
+        session.close()

@@ -1,3 +1,5 @@
+![Build Status](https://github.com/ricardobranco777/susebats/actions/workflows/ci.yml/badge.svg)
+
 # susebats
 Display information on BATS tests in openQA
 

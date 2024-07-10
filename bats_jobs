@@ -85,7 +85,6 @@ def get_job(url_string: str) -> Job | None:
         job_id = int(os.path.basename(url.path).removeprefix("t"))
 
     api_url = f"{url.scheme}://{url.netloc}/api/v1/jobs/{job_id}"
-
     try:
         got = session.get(api_url, timeout=TIMEOUT)
         got.raise_for_status()
@@ -93,9 +92,10 @@ def get_job(url_string: str) -> Job | None:
         print(f"ERROR: {api_url}: {error}", file=sys.stderr)
         return None
     info = got.json()["job"]
+
     return Job(
         name=info["name"],
-        result=info["result"],
+        result=info["result"] if info["result"] != "none" else info["state"],
         url=f"{url.scheme}://{url.netloc}/tests/{job_id}",
     )
 
@@ -116,7 +116,7 @@ def main() -> None:
             if job is None:
                 continue
             result = job.result.upper() if job.result == "failed" else job.result
-            print(f"{result}  {job.url:<42}  {job.name}")
+            print(f"{result:10}  {job.url:<42}  {job.name}")
 
 
 if __name__ == "__main__":

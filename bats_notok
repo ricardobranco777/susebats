@@ -105,7 +105,7 @@ def main() -> None:
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
         file_urls = [urljoin(base_url, filename) for filename in filenames]
 
-        with ThreadPoolExecutor() as executor:
+        with ThreadPoolExecutor(max_workers=min(10, len(file_urls))) as executor:
             downloaded_files = filter(None, executor.map(download_file, file_urls))
 
         # Group multiple .tap files by their prefixes:

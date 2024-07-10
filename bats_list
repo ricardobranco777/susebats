@@ -5,7 +5,6 @@ List skipped BATS tests on all schedules
 
 import argparse
 import io
-import logging
 import re
 import os
 import sys
@@ -19,16 +18,10 @@ import yaml
 
 GITLAB_TOKEN = os.environ.get("GITLAB_TOKEN")
 
-DIRS = (
-    "~/suse/opensuse-jobgroups/",
-    "~/suse/qac-openqa-yaml/",
-)
-
 REPOS = (
     "https://github.com/os-autoinst/opensuse-jobgroups/archive/refs/heads/master.tar.gz",
     "https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz",
 )
-
 
 SKIP = re.compile(r"BATS_SKIP")
 TESTSUITE = re.compile(r"(buildah|podman)_testsuite$")
@@ -91,8 +84,7 @@ def grep_tarball(
         response = requests.get(url, headers=headers, stream=True, timeout=10)
         response.raise_for_status()
     except RequestException as error:
-        logging.error("%s: %s", url, error)
-        sys.exit(1)
+        sys.exit(f"ERROR: {url}: {error}")
     data = io.BytesIO(response.content)
     try:
         with tarfile.open(fileobj=data, mode="r:gz") as tar:
@@ -103,26 +95,7 @@ def grep_tarball(
                         yield io.TextIOWrapper(io.BytesIO(file.read()))
     except tarfile.ReadError as error:
         # May fail because GITLAB_TOKEN is not set
-        logging.error("%s: %s", url, error)
-
-
-def fetch_remote() -> None:
-    """
-    Fetch info from URL containing tarball to remote repo
-    """
-    for repo in REPOS:
-        for file in grep_tarball(repo, "*.yaml"):
-            find_file(file)
-
-
-def fetch_local() -> None:
-    """
-    Fetch info from local cloned repo
-    """
-    for directory in DIRS:
-        for file in grep_dir(os.path.expanduser(directory), SKIP, "*.yaml", [".git"]):
-            with open(file, encoding="utf-8") as f:
-                find_file(f)
+        print(f"ERROR: {url}: {error}", file=sys.stderr)
 
 
 def main() -> None:
@@ -132,17 +105,25 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="bats_list",
         description="list skipped BATS tests per product",
-        epilog="set GITLAB_TOKEN environment variable for --remote",
+        epilog="set GITLAB_TOKEN environment variable for gitlab",
     )
     parser.add_argument(
-        "--remote", action="store_true", help="Fetch info from remote repos"
+        "repositories",
+        nargs="*",
+        default=REPOS,
+        metavar="repository",
+        help="directory or URL",
     )
     args = parser.parse_args()
 
-    if args.remote:
-        fetch_remote()
-    else:
-        fetch_local()
+    for repo in args.repositories:
+        if repo.startswith("https://") or not repo.startswith("/"):
+            for file in grep_tarball(repo, "*.yaml"):
+                find_file(file)
+        else:
+            for filename in grep_dir(repo, SKIP, "*.yaml", [".git"]):
+                with open(filename, encoding="utf-8") as file:
+                    find_file(file)
 
 
 if __name__ == "__main__":

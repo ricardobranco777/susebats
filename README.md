@@ -6,18 +6,20 @@ Display information on BATS tests in openQA
 ## bats_list
 
 ```
-usage: bats_list [-h] [--remote]
+usage: bats_list [-h] [repositories ...]
 
 list skipped BATS tests per product
 
-options:
-  -h, --help  show this help message and exit
-  --remote    Fetch info from remote repos
+positional arguments:
+  repositories
 
-set GITLAB_TOKEN environment variable for --remote
+options:
+  -h, --help    show this help message and exit
+
+set GITLAB_TOKEN environment variable for gitlab
 ```
 
-List BATS tests. The **DIRS** variable must point to local cloned repositores for:
+Default repositories:
 - https://gitlab.suse.de/qac/qac-openqa-yaml
 - https://github.com/os-autoinst/opensuse-jobgroups
 

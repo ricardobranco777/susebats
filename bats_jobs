@@ -51,6 +51,7 @@ class Job:
 
     name: str
     result: str
+    results: list[dict]
     url: str
 
 
@@ -69,7 +70,7 @@ def get_job_id(url: str) -> int | None:
     return int(elem[0].text_content().removeprefix("#"))  # type: ignore
 
 
-def get_job(url_string: str) -> Job | None:
+def get_job(url_string: str, verbose: bool = False) -> Job | None:
     """
     Get a job
     """
@@ -85,6 +86,8 @@ def get_job(url_string: str) -> Job | None:
         job_id = int(os.path.basename(url.path).removeprefix("t"))
 
     api_url = f"{url.scheme}://{url.netloc}/api/v1/jobs/{job_id}"
+    if verbose:
+        api_url = f"{api_url}/details"
     try:
         got = session.get(api_url, timeout=TIMEOUT)
         got.raise_for_status()
@@ -96,6 +99,7 @@ def get_job(url_string: str) -> Job | None:
     return Job(
         name=info["name"],
         result=info["result"] if info["result"] != "none" else info["state"],
+        results=info.get("testresults") if info["result"] == "failed" else None,
         url=f"{url.scheme}://{url.netloc}/tests/{job_id}",
     )
 
@@ -108,15 +112,29 @@ def main() -> None:
         prog="bats_jobs",
         description="list BATS jobs in o.s.d & o3",
     )
+    parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("urls", nargs="*", default=URLS, metavar="url")
     args = parser.parse_args()
 
     with ThreadPoolExecutor(max_workers=min(10, len(args.urls))) as executor:
-        for job in executor.map(get_job, args.urls):
+        for job in executor.map(lambda u: get_job(u, args.verbose), args.urls):
             if job is None:
                 continue
-            result = job.result.upper() if job.result == "failed" else job.result
-            print(f"{result:10}  {job.url:<42}  {job.name}")
+            job.result = job.result.upper() if job.result == "failed" else job.result
+            print(f"{job.result:10}  {job.url:<42}  {job.name}")
+            # Skip non-failed jobs
+            if job.result != "FAILED" or not job.results:
+                continue
+            for result in job.results:
+                # Skip non-failed modules
+                if result["result"] == "failed":
+                    if not result["has_parser_text_result"]:
+                        print(f"\t{result['name']}")
+                        continue
+                    for test in result["details"]:
+                        # Skip non-failed sub-tests
+                        if test["result"] == "fail":
+                            print(f"\t{result['name']:<30}  {test['text_data']}")
 
 
 if __name__ == "__main__":

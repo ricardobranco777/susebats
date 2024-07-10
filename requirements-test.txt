@@ -4,5 +4,6 @@ black
 flake8
 pylint
 mypy
+lxml-stubs
 types-PyYAML
 types-requests

@@ -1,5 +1,4 @@
-FILES=bats_list bats_notok
-BIN=$(FILES) bats_lsskip
+FILES=bats_jobs bats_list bats_notok
 
 .PHONY: all
 all: flake8 pylint mypy black
@@ -10,7 +9,7 @@ flake8:
 
 .PHONY: pylint
 pylint:
-	@pylint --disable=duplicate-code $(FILES)
+	@pylint --disable=duplicate-code,line-too-long $(FILES)
 
 .PHONY: mypy
 mypy:
@@ -19,11 +18,3 @@ mypy:
 .PHONY: black
 black:
 	@black --check $(FILES)
-
-.PHONY: install
-install:
-	install -m 0755 $(BIN) $(HOME)/bin/
-
-.PHONY: uninstall
-uninstall:
-	cd $(HOME)/bin ; rm -f $(BIN)

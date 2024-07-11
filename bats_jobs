@@ -44,19 +44,18 @@ def get_job_id(
     if not url.query:
         return int(os.path.basename(url.path).removeprefix("t"))
 
-    url_string = f"{url.scheme}://{url.netloc}/tests/overview.json"
+    # api_url = f"{url.scheme}://{url.netloc}/tests/overview.json"
+    api_url = f"{url.scheme}://{url.netloc}/api/v1/jobs/overview"
     try:
-        got = session.get(url_string, params=params, timeout=TIMEOUT)
+        got = session.get(api_url, params=params, timeout=TIMEOUT)
         got.raise_for_status()
         data = got.json()
     except RequestException as error:
         print(f"ERROR: {url_string}: {error}", file=sys.stderr)
         return None
 
-    if not data["job_ids"]:
-        return None
-    assert len(data["job_ids"]) == 1
-    return data["job_ids"].pop()
+    # assert len(data) == 1
+    return data[0]["id"]
 
 
 def get_job(
@@ -86,10 +85,10 @@ def get_job(
     try:
         got = session.get(api_url, timeout=TIMEOUT)
         got.raise_for_status()
+        info = got.json()["job"]
     except RequestException as error:
         print(f"ERROR: {api_url}: {error}", file=sys.stderr)
         return None
-    info = got.json()["job"]
 
     return Job(
         name=info["name"],

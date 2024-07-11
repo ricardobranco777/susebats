@@ -8,9 +8,9 @@ import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-from urllib.parse import urlparse
+from datetime import datetime, timedelta
+from urllib.parse import parse_qs, urlparse
 
-from lxml import html
 import requests
 from requests.exceptions import RequestException
 
@@ -34,22 +34,34 @@ class Job:
     url: str
 
 
-def get_job_id(url: str) -> int | None:
+def get_job_id(
+    url_string: str, params: dict[str, list[str]] | None = None
+) -> int | None:
     """
     Get job ID from URL with no job ID in URL
     """
+    url = urlparse(url_string)
+    if not url.query:
+        return int(os.path.basename(url.path).removeprefix("t"))
+
+    url_string = f"{url.scheme}://{url.netloc}/tests/overview.json"
     try:
-        got = session.get(url, timeout=TIMEOUT)
+        got = session.get(url_string, params=params, timeout=TIMEOUT)
         got.raise_for_status()
+        data = got.json()
     except RequestException as error:
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        print(f"ERROR: {url_string}: {error}", file=sys.stderr)
         return None
-    tree = html.fromstring(got.text)
-    elem = tree.xpath('//*[@id="info_box"]/div[1]/i/a')
-    return int(elem[0].text_content().removeprefix("#"))  # type: ignore
+
+    if not data["job_ids"]:
+        return None
+    assert len(data["job_ids"]) == 1
+    return data["job_ids"].pop()
 
 
-def get_job(url_string: str, verbose: bool = False) -> Job | None:
+def get_job(
+    url_string: str, verbose: bool = False, build: str | None = None
+) -> Job | None:
     """
     Get a job
     """
@@ -57,12 +69,16 @@ def get_job(url_string: str, verbose: bool = False) -> Job | None:
         url_string = f"https://{url_string}"
     url = urlparse(url_string)
 
-    if url.query:
-        job_id = get_job_id(url_string)
-        if job_id is None:
-            return None
-    else:
-        job_id = int(os.path.basename(url.path).removeprefix("t"))
+    params: dict[str, list[str]] = parse_qs(url.query)
+    if build:
+        # Append "-1" to aggregate tests in o.s.d
+        if "openqa.suse.de" in url.netloc and not build.endswith("-1"):
+            build = f"{build}-1"
+        params["build"] = [build]
+
+    job_id = get_job_id(url_string, params=params)
+    if job_id is None:
+        return None
 
     api_url = f"{url.scheme}://{url.netloc}/api/v1/jobs/{job_id}"
     if verbose:
@@ -110,6 +126,7 @@ def main() -> None:
         prog="bats_jobs",
         description="list BATS jobs in o.s.d & o3",
     )
+    parser.add_argument("-b", "--build", help="-DAYS_AGO or YYYYMMDD")
     parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("urls", nargs="*", metavar="url")
     args = parser.parse_args()
@@ -117,8 +134,16 @@ def main() -> None:
     if not args.urls:
         args.urls = get_urls(REPOS)
 
+    build = args.build
+    if build and build.startswith("-"):
+        today = datetime.now().date()
+        date = today - timedelta(days=int(build[1:]))
+        build = date.strftime("%Y%m%d")
+
     with ThreadPoolExecutor(max_workers=min(10, len(args.urls))) as executor:
-        for job in executor.map(lambda u: get_job(u, args.verbose), args.urls):
+        for job in executor.map(
+            lambda u: get_job(u, verbose=args.verbose, build=build), args.urls
+        ):
             if job is None:
                 continue
             job.result = job.result.upper() if job.result == "failed" else job.result

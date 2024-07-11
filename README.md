@@ -18,6 +18,8 @@ positional arguments:
 
 options:
   -h, --help     show this help message and exit
+  -b BUILD, --build BUILD
+                        -DAYS_AGO or YYYYMMDD
   -v, --verbose
 ```
 

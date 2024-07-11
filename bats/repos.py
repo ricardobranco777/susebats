@@ -19,10 +19,10 @@ import yaml
 
 GITLAB_TOKEN = os.environ.get("GITLAB_TOKEN")
 
-REPOS = (
+REPOS = [
     "https://github.com/os-autoinst/opensuse-jobgroups/archive/refs/heads/master.tar.gz",
     "https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz",
-)
+]
 
 SKIP = re.compile(r"BATS_SKIP")
 TESTSUITE = re.compile(r"(buildah|podman)_testsuite$")

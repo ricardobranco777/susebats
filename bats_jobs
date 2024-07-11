@@ -14,31 +14,10 @@ from lxml import html
 import requests
 from requests.exceptions import RequestException
 
+from bats.repos import REPOS, find_file, grep_tarball
+
 
 TIMEOUT = 30
-
-# TO DO:
-# Get these URL's from YAML schedules
-URLS = (
-    "https://openqa.opensuse.org/tests/latest?arch=x86_64&test=containers_host_podman_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed",
-    "https://openqa.opensuse.org/tests/latest?arch=x86_64&test=containers_host_buildah_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed",
-    "https://openqa.opensuse.org/tests/latest?arch=aarch64&test=containers_host_podman_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP3",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP4",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=buildah_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP4",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP5",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=buildah_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP5",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP6",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=buildah_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP6",
-    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP3",
-    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP4",
-    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP5",
-    "https://openqa.suse.de/tests/latest?arch=aarch64&test=podman_testsuite&distri=sle&flavor=Server-DVD-Updates&version=15-SP6",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
-    "https://openqa.suse.de/tests/latest?arch=aarch64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
-    "https://openqa.suse.de/tests/latest?arch=aarch64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
-    "https://openqa.suse.de/tests/latest?arch=x86_64&test=slem_podman_testsuite&distri=sle-micro&flavor=Default-Updates&version=5.5",
-)
 
 session = requests.Session()
 
@@ -104,6 +83,25 @@ def get_job(url_string: str, verbose: bool = False) -> Job | None:
     )
 
 
+def get_urls(repos: list[str]) -> list[str]:
+    """
+    Get URL's from YAML schedules
+    """
+
+    def process_repo(repo: str) -> list[str]:
+        urls = []
+        for file in grep_tarball(repo, "*.yaml"):
+            for product in find_file(file):
+                urls.append(product.url)
+        return urls
+
+    urls = []
+    with ThreadPoolExecutor(max_workers=min(10, len(repos))) as executor:
+        for result in executor.map(process_repo, repos):
+            urls.extend(result)
+    return urls
+
+
 def main() -> None:
     """
     Main function
@@ -113,8 +111,11 @@ def main() -> None:
         description="list BATS jobs in o.s.d & o3",
     )
     parser.add_argument("-v", "--verbose", action="store_true")
-    parser.add_argument("urls", nargs="*", default=URLS, metavar="url")
+    parser.add_argument("urls", nargs="*", metavar="url")
     args = parser.parse_args()
+
+    if not args.urls:
+        args.urls = get_urls(REPOS)
 
     with ThreadPoolExecutor(max_workers=min(10, len(args.urls))) as executor:
         for job in executor.map(lambda u: get_job(u, args.verbose), args.urls):

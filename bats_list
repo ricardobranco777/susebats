@@ -9,6 +9,7 @@ import re
 import os
 import sys
 import tarfile
+from dataclasses import dataclass
 from fnmatch import fnmatch
 from typing import Iterator
 from urllib.parse import urlencode
@@ -28,7 +29,18 @@ SKIP = re.compile(r"BATS_SKIP")
 TESTSUITE = re.compile(r"(buildah|podman)_testsuite$")
 
 
-def find_file(file: io.TextIOWrapper) -> None:
+@dataclass
+class Product:
+    """
+    Product class
+    """
+
+    name: str
+    url: str
+    settings: dict[str, str]
+
+
+def find_file(file: io.TextIOWrapper) -> Iterator[Product]:
     """
     Find settings in file
     """
@@ -56,9 +68,9 @@ def find_file(file: io.TextIOWrapper) -> None:
                     }
                     params |= products[product]
                     url += "/tests/latest?" + urlencode(params)
-                    print(f"{product}\t{url}")
-                    for setting in sorted(filter(SKIP.search, info[test]["settings"])):
-                        print(f"\t{setting}='{info[test]['settings'][setting]}'")
+                    yield Product(
+                        name=product, url=url, settings=info[test]["settings"]
+                    )
 
 
 def grep_dir(
@@ -132,11 +144,17 @@ def main() -> None:
     for repo in args.repositories:
         if repo.startswith("https://") or not repo.startswith("/"):
             for file in grep_tarball(repo, "*.yaml"):
-                find_file(file)
+                for product in find_file(file):
+                    print(f"{product.name}\t{product.url}")
+                    for setting in sorted(filter(SKIP.search, product.settings)):
+                        print(f"\t{setting}='{product.settings[setting]}'")
         else:
             for filename in grep_dir(repo, SKIP, "*.yaml", [".git"]):
                 with open(filename, encoding="utf-8") as file:
-                    find_file(file)
+                    for product in find_file(file):
+                        print(f"{product.name}\t{product.url}")
+                        for setting in sorted(filter(SKIP.search, product.settings)):
+                            print(f"\t{setting}='{product.settings[setting]}'")
 
 
 if __name__ == "__main__":

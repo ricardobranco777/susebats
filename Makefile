@@ -1,4 +1,4 @@
-FILES=bats_jobs bats_list bats_notok
+FILES=bats_jobs bats_list bats_notok bats/*.py
 
 .PHONY: all
 all: flake8 pylint mypy black

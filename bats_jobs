@@ -125,6 +125,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(
         prog="bats_jobs",
         description="list BATS jobs in o.s.d & o3",
+        epilog="set GITLAB_TOKEN environment variable for gitlab",
     )
     parser.add_argument("-b", "--build", help="-DAYS_AGO or YYYYMMDD")
     parser.add_argument("-v", "--verbose", action="store_true")

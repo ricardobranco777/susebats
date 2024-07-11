@@ -21,6 +21,8 @@ options:
   -b BUILD, --build BUILD
                         -DAYS_AGO or YYYYMMDD
   -v, --verbose
+
+set GITLAB_TOKEN environment variable for gitlab
 ```
 
 ## bats_list

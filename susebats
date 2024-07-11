@@ -1,0 +1,6 @@
+#!/bin/sh
+
+DOCKER="${DOCKER:-podman}"
+IMAGE="ghcr.io/ricardobranco777/susebats:latest"
+
+exec "$DOCKER" run --rm -e GITLAB_TOKEN "$IMAGE" "$@"

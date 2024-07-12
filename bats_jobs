@@ -109,11 +109,11 @@ def get_urls(repos: list[str]) -> list[str]:
     """
 
     def process_repo(repo: str) -> list[str]:
-        urls = []
-        for file in grep_tarball(repo, "*.yaml"):
-            for product in find_products(file):
-                urls.append(product.url)
-        return urls
+        return [
+            product.url
+            for file in grep_tarball(repo, "*.yaml")
+            for product in find_products(file)
+        ]
 
     urls = []
     with ThreadPoolExecutor(max_workers=min(10, len(repos))) as executor:

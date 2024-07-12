@@ -16,8 +16,6 @@ import requests
 from requests.exceptions import RequestException
 import yaml
 
-GITLAB_TOKEN = os.environ.get("GITLAB_TOKEN")
-
 REPOS = [
     "https://github.com/os-autoinst/opensuse-jobgroups/archive/refs/heads/master.tar.gz",
     "https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz",
@@ -78,7 +76,7 @@ def grep_tarball(
     """
     headers = {}
     if "gitlab" in url:
-        headers["PRIVATE-TOKEN"] = GITLAB_TOKEN
+        headers["PRIVATE-TOKEN"] = os.environ.get("GITLAB_TOKEN")
     try:
         response = requests.get(url, headers=headers, stream=True, timeout=10)
         response.raise_for_status()

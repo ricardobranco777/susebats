@@ -10,23 +10,15 @@ from concurrent.futures import ThreadPoolExecutor
 from bats.repos import REPOS, Product, find_products, grep_tarball
 
 
-def get_products(repos: list[str]) -> list[Product]:
+def get_products(repo: str) -> list[Product]:
     """
-    Get products from YAML schedules
+    Get products from YAML schedules in repo
     """
-
-    def process_repo(repo: str) -> list[Product]:
-        return [
-            product
-            for file in grep_tarball(repo, "*.yaml")
-            for product in find_products(file)
-        ]
-
-    products = []
-    with ThreadPoolExecutor(max_workers=min(10, len(repos))) as executor:
-        for result in executor.map(process_repo, repos):
-            products.extend(result)
-    return products
+    return [
+        product
+        for file in grep_tarball(repo, "*.yaml")
+        for product in find_products(file)
+    ]
 
 
 def main() -> None:
@@ -47,10 +39,12 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    for product in get_products(args.repositories):
-        print(f"{product.name}\t{product.url}")
-        for setting, value in product.settings.items():
-            print(f"\t{setting}='{value}'")
+    with ThreadPoolExecutor(max_workers=min(10, len(args.repositories))) as executor:
+        for products in executor.map(get_products, args.repositories):
+            for product in products:
+                print(f"{product.name}\t{product.url}")
+                for setting, value in product.settings.items():
+                    print(f"\t{setting}='{value}'")
 
 
 if __name__ == "__main__":

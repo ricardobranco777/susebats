@@ -103,23 +103,15 @@ def get_job(
     )
 
 
-def get_urls(repos: list[str]) -> list[str]:
+def get_urls(repo: str) -> list[str]:
     """
-    Get URL's from YAML schedules
+    Get URL's from YAML schedules in repo
     """
-
-    def process_repo(repo: str) -> list[str]:
-        return [
-            product.url
-            for file in grep_tarball(repo, "*.yaml")
-            for product in find_products(file)
-        ]
-
-    urls = []
-    with ThreadPoolExecutor(max_workers=min(10, len(repos))) as executor:
-        for result in executor.map(process_repo, repos):
-            urls.extend(result)
-    return urls
+    return [
+        product.url
+        for file in grep_tarball(repo, "*.yaml")
+        for product in find_products(file)
+    ]
 
 
 def main() -> None:
@@ -137,7 +129,10 @@ def main() -> None:
     args = parser.parse_args()
 
     if not args.urls:
-        args.urls = get_urls(REPOS)
+        args.urls = []
+        with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
+            for urls in executor.map(get_urls, REPOS):
+                args.urls.extend(urls)
 
     build = args.build
     if build and build.startswith("-"):

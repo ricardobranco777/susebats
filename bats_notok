@@ -17,6 +17,8 @@ from urllib.parse import urljoin, urlparse
 import requests
 from requests.exceptions import RequestException
 
+from bats.debug import debugme
+
 
 TIMEOUT = 10
 
@@ -119,6 +121,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    if os.getenv("DEBUG"):
+        session.hooks["response"].append(debugme)
     try:
         main()
     except KeyboardInterrupt:

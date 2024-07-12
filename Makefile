@@ -9,7 +9,7 @@ flake8:
 
 .PHONY: pylint
 pylint:
-	@pylint --disable=duplicate-code,line-too-long $(FILES)
+	@pylint --disable=duplicate-code $(FILES)
 
 .PHONY: mypy
 mypy:

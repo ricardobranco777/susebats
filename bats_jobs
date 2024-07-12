@@ -14,6 +14,7 @@ from urllib.parse import parse_qs, urlparse
 import requests
 from requests.exceptions import RequestException
 
+from bats.debug import debugme
 from bats.repos import REPOS, find_file, grep_tarball
 
 
@@ -164,6 +165,8 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+    if os.getenv("DEBUG"):
+        session.hooks["response"].append(debugme)
     try:
         main()
     except KeyboardInterrupt:

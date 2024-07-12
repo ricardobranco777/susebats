@@ -4,6 +4,7 @@ RUN	zypper addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_
 	zypper --gpg-auto-import-keys -n install ca-certificates-suse && \
 	zypper -n install \
 		python3-requests \
+		python3-requests-toolbelt \
 		python3-PyYAML && \
 	zypper clean -a
 

@@ -36,9 +36,9 @@ class Product:
     settings: dict[str, str]
 
 
-def find_file(file: io.TextIOWrapper) -> Iterator[Product]:
+def find_products(file: io.TextIOWrapper) -> Iterator[Product]:
     """
-    Find settings in file
+    Find products in YAML schedule with settings containing "BATS_SKIP"
     """
     try:
         data = yaml.safe_load(file)
@@ -48,27 +48,24 @@ def find_file(file: io.TextIOWrapper) -> Iterator[Product]:
     if "scenarios" not in data:
         return
 
-    products = data["products"]
-
-    for arch, scenario in data["scenarios"].items():
-        for product, tests in scenario.items():
-            for info in filter(lambda t: isinstance(t, dict), tests):
-                for test in info.keys():
-                    if "settings" not in info[test]:
+    for arch, products in data["scenarios"].items():
+        for product, scenarios in products.items():
+            for scenario in filter(lambda s: isinstance(s, dict), scenarios):
+                for test in scenario.keys():
+                    if "settings" not in scenario[test]:
                         continue
                     settings = {
-                        k: v
-                        for k, v in info[test]["settings"].items()
-                        if "BATS_SKIP" in k
+                        setting: scenario[test]["settings"][setting]
+                        for setting in sorted(scenario[test]["settings"])
+                        if "BATS_SKIP" in setting
                     }
                     if not settings:
                         continue
-                    settings = {k: settings[k] for k in sorted(settings)}
                     if product.startswith("opensuse"):
                         url = "https://openqa.opensuse.org"
                     else:
                         url = "https://openqa.suse.de"
-                    params = products[product] | {"arch": arch, "test": test}
+                    params = data["products"][product] | {"arch": arch, "test": test}
                     url = f"{url}/tests/latest?{urlencode(params)}"
                     yield Product(name=product, url=url, settings=settings)
 

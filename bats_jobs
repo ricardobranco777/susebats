@@ -54,8 +54,9 @@ def get_job_id(
     except RequestException as error:
         print(f"ERROR: {url_string}: {error}", file=sys.stderr)
         return None
+    if len(data) != 1:
+        return None
 
-    # assert len(data) == 1
     return data[0]["id"]
 
 
@@ -89,6 +90,9 @@ def get_job(
         info = got.json()["job"]
     except RequestException as error:
         print(f"ERROR: {api_url}: {error}", file=sys.stderr)
+        return None
+
+    if build and info["settings"]["BUILD"] != build:
         return None
 
     return Job(

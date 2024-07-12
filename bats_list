@@ -4,11 +4,10 @@ List skipped BATS tests on all schedules
 """
 
 import argparse
-import re
 import os
 import sys
 
-from bats.repos import REPOS, find_products, grep_dir, grep_tarball
+from bats.repos import REPOS, find_products, grep_tarball
 
 GITLAB_TOKEN = os.environ.get("GITLAB_TOKEN")
 
@@ -32,19 +31,11 @@ def main() -> None:
     args = parser.parse_args()
 
     for repo in args.repositories:
-        if repo.startswith("https://") or not repo.startswith("/"):
-            for file in grep_tarball(repo, "*.yaml"):
-                for product in find_products(file):
-                    print(f"{product.name}\t{product.url}")
-                    for setting, value in product.settings.items():
-                        print(f"\t{setting}='{value}'")
-        else:
-            for filename in grep_dir(repo, re.compile("BATS_SKIP"), "*.yaml", [".git"]):
-                with open(filename, encoding="utf-8") as file:
-                    for product in find_products(file):
-                        print(f"{product.name}\t{product.url}")
-                        for setting, value in product.settings.items():
-                            print(f"\t{setting}='{value}'")
+        for file in grep_tarball(repo, "*.yaml"):
+            for product in find_products(file):
+                print(f"{product.name}\t{product.url}")
+                for setting, value in product.settings.items():
+                    print(f"\t{setting}='{value}'")
 
 
 if __name__ == "__main__":

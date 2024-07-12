@@ -4,7 +4,6 @@ Repos module
 """
 
 import io
-import re
 import os
 import sys
 import tarfile
@@ -68,28 +67,6 @@ def find_products(file: io.TextIOWrapper) -> Iterator[Product]:
                     params = data["products"][product] | {"arch": arch, "test": test}
                     url = f"{url}/tests/latest?{urlencode(params)}"
                     yield Product(name=product, url=url, settings=settings)
-
-
-def grep_dir(
-    directory: str,
-    regex: re.Pattern,
-    file_pattern: str,
-    ignore_dirs: list[str] | None = None,
-) -> Iterator[str]:
-    """
-    Recursive grep
-    """
-    if ignore_dirs is None:
-        ignore_dirs = []
-    for root, dirs, files in os.walk(directory):
-        for ignore in set(ignore_dirs) & set(dirs):
-            dirs.remove(ignore)
-        for file in files:
-            if fnmatch(file, file_pattern):
-                file = os.path.join(root, file)
-                with open(file, encoding="utf-8") as f:
-                    if regex.search(f.read(), re.M):
-                        yield file
 
 
 def grep_tarball(

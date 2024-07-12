@@ -24,9 +24,6 @@ REPOS = [
     "https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz",
 ]
 
-SKIP = re.compile(r"BATS_SKIP")
-TESTSUITE = re.compile(r"(buildah|podman)_testsuite$")
-
 
 @dataclass
 class Product:
@@ -56,20 +53,24 @@ def find_file(file: io.TextIOWrapper) -> Iterator[Product]:
     for arch, scenario in data["scenarios"].items():
         for product, tests in scenario.items():
             for info in filter(lambda t: isinstance(t, dict), tests):
-                for test in sorted(filter(TESTSUITE.search, info.keys())):
+                for test in info.keys():
+                    if "settings" not in info[test]:
+                        continue
+                    settings = {
+                        k: v
+                        for k, v in info[test]["settings"].items()
+                        if "BATS_SKIP" in k
+                    }
+                    if not settings:
+                        continue
+                    settings = {k: settings[k] for k in sorted(settings)}
                     if product.startswith("opensuse"):
                         url = "https://openqa.opensuse.org"
                     else:
                         url = "https://openqa.suse.de"
-                    params = {
-                        "arch": arch,
-                        "test": test,
-                    }
-                    params |= products[product]
-                    url += "/tests/latest?" + urlencode(params)
-                    yield Product(
-                        name=product, url=url, settings=info[test]["settings"]
-                    )
+                    params = products[product] | {"arch": arch, "test": test}
+                    url = f"{url}/tests/latest?{urlencode(params)}"
+                    yield Product(name=product, url=url, settings=settings)
 
 
 def grep_dir(

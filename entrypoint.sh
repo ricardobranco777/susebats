@@ -10,5 +10,5 @@ case "$command" in
 		exec "/bats_$command" "$@" ;;
 	*)
 		echo >&2 "ERROR: Unknown command: $command"
-		echo >&2 "ERROR: Usage: bats_jobs|bats_list|bats_notok ..." ;;
+		echo >&2 "ERROR: Usage: jobs|list|notok ..." ;;
 esac

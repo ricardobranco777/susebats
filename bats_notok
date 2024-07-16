@@ -69,7 +69,7 @@ def process_files(files: list[str]) -> None:
         for file in files:
             found[file] -= skip_common
 
-    prefix = files[0].split("_integration")[0].upper() + "_BATS_SKIP"
+    prefix = files[0].split("_")[0].upper() + "_BATS_SKIP"
     skip = " ".join(sorted(skip_common)) or "none"
     print(f"{prefix}='{skip}'")
     if len(files) == 1:

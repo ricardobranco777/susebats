@@ -54,7 +54,7 @@ def get_job_id(
 
 
 def get_job(
-    url_string: str, verbose: bool = False, build: str | None = None
+    url_string: str, full: bool = False, build: str | None = None
 ) -> Job | None:
     """
     Get a job
@@ -65,9 +65,6 @@ def get_job(
 
     params: dict[str, list[str]] = parse_qs(url.query)
     if build:
-        # Append "-1" to aggregate tests in o.s.d
-        if "openqa.suse.de" in url.netloc and not build.endswith("-1"):
-            build = f"{build}-1"
         params["build"] = [build]
 
     job_id = get_job_id(url_string, params=params)
@@ -75,7 +72,7 @@ def get_job(
         return None
 
     api_url = f"{url.scheme}://{url.netloc}/api/v1/jobs/{job_id}"
-    if verbose:
+    if full:
         api_url = f"{api_url}/details"
     try:
         got = session.get(api_url, timeout=_TIMEOUT)

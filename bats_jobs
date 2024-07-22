@@ -30,6 +30,16 @@ def get_urls(repo: str) -> list[str]:
     ]
 
 
+def get_build(url: str, build: str) -> str:
+    """
+    Normalize build
+    """
+    # Append "-1" to aggregate tests in o.s.d
+    if "openqa.suse.de" in url and build.isdigit():
+        return f"{build}-1"
+    return build
+
+
 def main() -> None:
     """
     Main function
@@ -51,14 +61,15 @@ def main() -> None:
                 args.urls.extend(urls)
 
     build = args.build
-    if build and build.startswith("-"):
+    if build and build.startswith("-") and len(build) < 8 and build[1:].isdigit():
         today = datetime.now().date()
         date = today - timedelta(days=int(build[1:]))
         build = date.strftime("%Y%m%d")
 
     with ThreadPoolExecutor(max_workers=min(10, len(args.urls))) as executor:
         for job in executor.map(
-            lambda u: get_job(u, verbose=args.verbose, build=build), args.urls
+            lambda u: get_job(u, full=args.verbose, build=get_build(u, build)),
+            args.urls,
         ):
             if job is None:
                 continue

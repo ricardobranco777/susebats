@@ -92,7 +92,7 @@ def main() -> None:
     parser.add_argument("url", help="openQA job")
     args = parser.parse_args()
 
-    job = get_job(args.url, verbose=True)
+    job = get_job(args.url, full=True)
     if job is None or job.logs is None:
         sys.exit(f"ERROR: {args.url}")
     filenames = filter(lambda s: s.endswith(".tap"), job.logs)

@@ -145,21 +145,28 @@ def main() -> None:
         ):
             if job is None:
                 continue
-            job.result = job.result.upper() if job.result == "failed" else job.result
-            print(f"{job.result:10}  {job.url:<42}  {job.name}")
-            # Skip non-failed jobs
-            if job.result != "FAILED" or not job.results:
+            print_job(job)
+
+
+def print_job(job: Job) -> None:
+    """
+    Print job
+    """
+    job.result = job.result.upper() if job.result == "failed" else job.result
+    print(f"{job.result:10}  {job.url:<42}  {job.name}")
+    # Skip non-failed jobs
+    if job.result != "FAILED" or not job.results:
+        return
+    for result in job.results:
+        # Skip non-failed modules
+        if result["result"] == "failed":
+            if not result["has_parser_text_result"]:
+                print(f"\t{result['name']}")
                 continue
-            for result in job.results:
-                # Skip non-failed modules
-                if result["result"] == "failed":
-                    if not result["has_parser_text_result"]:
-                        print(f"\t{result['name']}")
-                        continue
-                    for test in result["details"]:
-                        # Skip non-failed sub-tests
-                        if test["result"] == "fail":
-                            print(f"\t{result['name']:<30}  {test['text_data']}")
+            for test in result["details"]:
+                # Skip non-failed sub-tests
+                if test["result"] == "fail":
+                    print(f"\t{result['name']:<30}  {test['text_data']}")
 
 
 if __name__ == "__main__":

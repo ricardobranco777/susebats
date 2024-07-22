@@ -23,8 +23,9 @@ class Job:
     """
 
     name: str
+    logs: list[str] | None
     result: str
-    results: list[dict]
+    results: list[dict] | None
     url: str
 
 
@@ -88,6 +89,7 @@ def get_job(
         return None
 
     return Job(
+        logs=info.get("ulogs"),
         name=info["name"],
         result=info["result"] if info["result"] != "none" else info["state"],
         results=info.get("testresults"),

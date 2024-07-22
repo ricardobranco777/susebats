@@ -97,7 +97,7 @@ def get_job(
     return Job(
         name=info["name"],
         result=info["result"] if info["result"] != "none" else info["state"],
-        results=info.get("testresults") if info["result"] == "failed" else None,
+        results=info.get("testresults"),
         url=f"{url.scheme}://{url.netloc}/tests/{job_id}",
     )
 
@@ -145,19 +145,25 @@ def main() -> None:
         ):
             if job is None:
                 continue
-            print_job(job)
+            print_job(job, verbose=args.verbose)
 
 
-def print_job(job: Job) -> None:
+def print_job(job: Job, verbose: bool = False) -> None:
     """
     Print job
     """
     job.result = job.result.upper() if job.result == "failed" else job.result
     print(f"{job.result:10}  {job.url:<42}  {job.name}")
     # Skip non-failed jobs
-    if job.result != "FAILED" or not job.results:
+    if not job.results:
         return
-    for result in job.results:
+    for result in job.results[1:]:
+        if verbose:
+            for detail in result["details"]:
+                if "title" not in detail:
+                    continue
+                if detail["title"].endswith(" version") and "ok" not in detail["title"]:
+                    print("\t", detail["text_data"].replace("\n", " "), sep="")
         # Skip non-failed modules
         if result["result"] == "failed":
             if not result["has_parser_text_result"]:

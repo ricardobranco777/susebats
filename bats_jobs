@@ -45,7 +45,6 @@ def get_job_id(
     if not url.query:
         return int(os.path.basename(url.path).removeprefix("t"))
 
-    # api_url = f"{url.scheme}://{url.netloc}/tests/overview.json"
     api_url = f"{url.scheme}://{url.netloc}/api/v1/jobs/overview"
     try:
         got = session.get(api_url, params=params, timeout=TIMEOUT)

@@ -83,7 +83,8 @@ def grep_tarball(
         response = requests.get(url, headers=headers, stream=True, timeout=10)
         response.raise_for_status()
     except RequestException as error:
-        sys.exit(f"ERROR: {url}: {error}")
+        print(f"ERROR: {url}: {error}")
+        return
     data = io.BytesIO(response.content)
     try:
         with tarfile.open(fileobj=data, mode="r:gz") as tar:

@@ -30,17 +30,10 @@ def main() -> None:
         description="list skipped BATS tests per product",
         epilog="set GITLAB_TOKEN environment variable for gitlab",
     )
-    parser.add_argument(
-        "repositories",
-        nargs="*",
-        default=REPOS,
-        metavar="repository",
-        help="directory or URL",
-    )
-    args = parser.parse_args()
+    parser.parse_args()
 
-    with ThreadPoolExecutor(max_workers=min(10, len(args.repositories))) as executor:
-        for products in executor.map(get_products, args.repositories):
+    with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
+        for products in executor.map(get_products, REPOS):
             for product in products:
                 print(f"{product.name}\t{product.url}")
                 for setting, value in product.settings.items():

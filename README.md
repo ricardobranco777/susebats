@@ -25,15 +25,12 @@ set GITLAB_TOKEN environment variable for gitlab
 ## bats_list
 
 ```
-usage: bats_list [-h] [repositories ...]
+usage: bats_list [-h]
 
 list skipped BATS tests per product
 
-positional arguments:
-  repositories
-
 options:
-  -h, --help    show this help message and exit
+  -h, --help  show this help message and exit
 
 set GITLAB_TOKEN environment variable for gitlab
 ```

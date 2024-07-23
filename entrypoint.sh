@@ -4,7 +4,7 @@ command="$1"
 shift
 
 case "$command" in
-	jobs|list|notok)
+	jobs|list|notok|version)
 		exec "/bats_$command" "$@" ;;
 	*)
 		if [ ! -z "$command" ] ; then

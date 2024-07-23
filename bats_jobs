@@ -5,7 +5,6 @@ List BATS jobs on o.s.d & o3
 
 import argparse
 import os
-import re
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
@@ -17,9 +16,6 @@ from bats.repos import REPOS, find_products, grep_tarball
 from bats.job import get_job, Job
 
 
-VERSION = re.compile(
-    "(aardvark(?:-dns)?|buildah|netavark|podman|runc|skopeo) (?:info|version)"
-)
 session = requests.Session()
 
 
@@ -44,24 +40,6 @@ def get_build(url: str, build: str | None) -> str | None:
     if "openqa.suse.de" in url and build.isdigit():
         return f"{build}-1"
     return build
-
-
-def get_version(title: str, info: str) -> str:
-    """
-    Get version
-    """
-    package = title.split()[0]
-    if package == "aardvark":
-        package = "aardvark-dns"
-    version = ""
-    lines = info.splitlines()
-    for line in lines:
-        if line.split()[0] == "Version:":
-            version = line.split()[-1]
-            break
-    if not version:
-        version = lines[0].split()[-1]
-    return f"{package} {version}"
 
 
 def main() -> None:
@@ -94,10 +72,10 @@ def main() -> None:
         ):
             if job is None:
                 continue
-            print_job(job, verbose=args.verbose)
+            print_job(job)
 
 
-def print_job(job: Job, verbose: bool = False) -> None:
+def print_job(job: Job) -> None:
     """
     Print job
     """
@@ -107,14 +85,6 @@ def print_job(job: Job, verbose: bool = False) -> None:
     if job.result != "FAILED":
         return
     for result in job.results:
-        if verbose and not result["has_parser_text_result"]:
-            for detail in result["details"]:
-                if "title" not in detail:
-                    continue
-                if VERSION.match(detail["title"]):
-                    print(
-                        "\t", get_version(detail["title"], detail["text_data"]), sep=""
-                    )
         # Skip non-failed modules
         if result["result"] == "failed":
             if not result["has_parser_text_result"]:

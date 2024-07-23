@@ -10,13 +10,11 @@ RUN	zypper addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_
 
 ENV	REQUESTS_CA_BUNDLE=/etc/ssl/ca-bundle.pem
 
-COPY	bats	/bats
 COPY	entrypoint.sh	/
-COPY	bats_jobs	/
-COPY	bats_list	/
-COPY	bats_notok	/
+COPY	bats	/bats
+COPY	bats_*	/
 
-RUN	chmod +x /entrypoint.sh /bats_jobs /bats_list /bats_notok
+RUN	chmod +x /entrypoint.sh /bats_*
 
 CMD	[]
 ENTRYPOINT ["/entrypoint.sh"]

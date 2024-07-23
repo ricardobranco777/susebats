@@ -35,10 +35,6 @@ options:
 set GITLAB_TOKEN environment variable for gitlab
 ```
 
-Default repositories:
-- https://gitlab.suse.de/qac/qac-openqa-yaml
-- https://github.com/os-autoinst/opensuse-jobgroups
-
 Example output:
 
 ```
@@ -58,6 +54,18 @@ opensuse-Tumbleweed-DVD-aarch64     https://openqa.opensuse.org/tests/latest?arc
 
 Generate BATS_SKIP variables from an openQA job URL
 
+```
+usage: bats_notok [-h] url
+
+Generate BATS_SKIP variables from an openQA job URL
+
+positional arguments:
+  url         openQA job
+
+options:
+  -h, --help  show this help message and exit
+```
+
 Example output:
 
 ```
@@ -74,4 +82,29 @@ RUNC_BATS_SKIP_USER='run userns'
 SKOPEO_BATS_SKIP='none'
 SKOPEO_BATS_SKIP_ROOT='none'
 SKOPEO_BATS_SKIP_USER='none'
+```
+
+## bats_version
+
+```
+usage: bats_version [-h] url
+
+print versions of BATS tested packages in openQA job
+
+positional arguments:
+  url         openQA job
+
+options:
+  -h, --help  show this help message and exit
+```
+
+Example output:
+
+```
+./bats_version https://openqa.opensuse.org/tests/4355590
+skopeo 1.15.1
+podman 5.1.2
+runc 1.2.0-rc.1
+netavark 1.11.0
+aardvark-dns 1.11.0
 ```

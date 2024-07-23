@@ -53,14 +53,12 @@ def main() -> None:
     )
     parser.add_argument("-b", "--build", help="-DAYS_AGO or YYYYMMDD")
     parser.add_argument("-v", "--verbose", action="store_true")
-    parser.add_argument("urls", nargs="*", metavar="url")
     args = parser.parse_args()
 
-    if not args.urls:
-        args.urls = []
-        with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
-            for urls in executor.map(get_urls, REPOS):
-                args.urls.extend(urls)
+    urls = []
+    with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
+        for results in executor.map(get_urls, REPOS):
+            urls.extend(results)
 
     build = args.build
     if build and build.startswith("-") and len(build) < 8 and build[1:].isdigit():
@@ -68,10 +66,9 @@ def main() -> None:
         date = today - timedelta(days=int(build[1:]))
         build = date.strftime("%Y%m%d")
 
-    with ThreadPoolExecutor(max_workers=min(10, len(args.urls))) as executor:
+    with ThreadPoolExecutor(max_workers=min(10, len(urls))) as executor:
         for job in executor.map(
-            lambda u: get_job(u, full=args.verbose, build=get_build(u, build)),
-            args.urls,
+            lambda u: get_job(u, full=args.verbose, build=get_build(u, build)), urls
         ):
             if job is None:
                 continue

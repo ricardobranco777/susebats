@@ -9,15 +9,12 @@ Docker image available at `ghcr.io/ricardobranco777/susebats:latest`
 ## bats_jobs
 
 ```
-usage: bats_jobs [-h] [-v] [url ...]
+usage: bats_jobs [-h] [-b BUILD] [-v]
 
 list BATS jobs in o.s.d & o3
 
-positional arguments:
-  url
-
 options:
-  -h, --help     show this help message and exit
+  -h, --help            show this help message and exit
   -b BUILD, --build BUILD
                         -DAYS_AGO or YYYYMMDD
   -v, --verbose

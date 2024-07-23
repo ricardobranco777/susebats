@@ -15,10 +15,13 @@ import requests
 from requests.exceptions import RequestException
 import yaml
 
-REPOS = [
-    "https://github.com/os-autoinst/opensuse-jobgroups/archive/refs/heads/master.tar.gz",
-    "https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz",
-]
+REPOS = os.getenv(
+    "REPOS",
+    """
+    https://github.com/os-autoinst/opensuse-jobgroups/archive/refs/heads/master.tar.gz
+    https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz
+    """,
+).split()
 
 
 @dataclass

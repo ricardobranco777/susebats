@@ -25,7 +25,7 @@ class Job:
     name: str
     logs: list[str]
     result: str
-    results: list[dict] | None
+    results: list[dict]
     url: str
 
 
@@ -88,6 +88,6 @@ def get_job(url: str, full: bool = False, build: str | None = None) -> Job | Non
         logs=logs,
         name=info["name"],
         result=info["result"] if info["result"] != "none" else info["state"],
-        results=info.get("testresults"),
+        results=info.get("testresults", []),
         url=url,
     )

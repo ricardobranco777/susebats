@@ -82,10 +82,10 @@ def print_job(job: Job, verbose: bool = False) -> None:
     job.result = job.result.upper() if job.result == "failed" else job.result
     print(f"{job.result:10}  {job.url:<42}  {job.name}")
     # Skip non-failed jobs
-    if not job.results:
+    if job.result != "FAILED":
         return
     for result in job.results[1:]:
-        if verbose:
+        if verbose and not result["has_parser_text_result"]:
             for detail in result["details"]:
                 if "title" not in detail:
                     continue

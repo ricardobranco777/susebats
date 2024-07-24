@@ -36,8 +36,8 @@ def main() -> None:
         for products in executor.map(get_products, REPOS):
             for product in products:
                 print(f"{product.name}\t{product.url}")
-                for setting, value in product.settings.items():
-                    print(f"\t{setting}='{value}'")
+                for setting, values in product.settings.items():
+                    print(f"\t{setting}='{' '.join(values)}'")
 
 
 if __name__ == "__main__":

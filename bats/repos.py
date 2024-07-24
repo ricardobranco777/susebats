@@ -32,7 +32,7 @@ class Product:
 
     name: str
     url: str
-    settings: dict[str, str]
+    settings: dict[str, list[str]]
 
 
 def find_products(file: io.TextIOWrapper) -> Iterator[Product]:
@@ -54,7 +54,7 @@ def find_products(file: io.TextIOWrapper) -> Iterator[Product]:
                     if "settings" not in scenario[test]:
                         continue
                     settings = {
-                        setting: scenario[test]["settings"][setting]
+                        setting: scenario[test]["settings"][setting].split()
                         for setting in sorted(scenario[test]["settings"])
                         if "BATS_SKIP" in setting
                     }

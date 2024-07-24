@@ -7,13 +7,9 @@ import sys
 from dataclasses import dataclass
 from urllib.parse import parse_qs, urljoin, urlparse
 
-import requests
 from requests.exceptions import RequestException
 
-
-_TIMEOUT = 30
-
-session = requests.Session()
+from bats.session import session, TIMEOUT
 
 
 @dataclass
@@ -39,7 +35,7 @@ def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | No
 
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/overview"
     try:
-        got = session.get(api_url, params=params, timeout=_TIMEOUT)
+        got = session.get(api_url, params=params, timeout=TIMEOUT)
         got.raise_for_status()
         data = got.json()
     except RequestException as error:
@@ -71,7 +67,7 @@ def get_job(url: str, full: bool = False, build: str | None = None) -> Job | Non
     if full:
         api_url = f"{api_url}/details"
     try:
-        got = session.get(api_url, timeout=_TIMEOUT)
+        got = session.get(api_url, timeout=TIMEOUT)
         got.raise_for_status()
         info = got.json()["job"]
     except RequestException as error:

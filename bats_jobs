@@ -4,19 +4,12 @@ List BATS jobs on o.s.d & o3
 """
 
 import argparse
-import os
 import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-import requests
-
-from bats.debug import debugme
 from bats.repos import REPOS, find_products, grep_tarball
 from bats.job import get_job, Job
-
-
-session = requests.Session()
 
 
 def get_urls(repo: str) -> list[str]:
@@ -97,11 +90,7 @@ def print_job(job: Job) -> None:
 
 
 if __name__ == "__main__":
-    if os.getenv("DEBUG"):
-        session.hooks["response"].append(debugme)
     try:
         main()
     except KeyboardInterrupt:
         sys.exit(1)
-    finally:
-        session.close()

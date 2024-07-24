@@ -4,20 +4,15 @@ List BATS jobs on o.s.d & o3
 """
 
 import argparse
-import os
 import re
 import sys
 
-import requests
-
-from bats.debug import debugme
 from bats.job import get_job
 
 
 VERSION = re.compile(
     "(aardvark(?:-dns)?|buildah|netavark|podman|runc|skopeo) (?:info|version)"
 )
-session = requests.Session()
 
 
 def get_version(title: str, info: str) -> tuple[str, str]:
@@ -72,11 +67,7 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    if os.getenv("DEBUG"):
-        session.hooks["response"].append(debugme)
     try:
         main()
     except KeyboardInterrupt:
         sys.exit(1)
-    finally:
-        session.close()

@@ -5,6 +5,7 @@ RUN	zypper addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_
 	zypper -n install \
 		python3-requests \
 		python3-requests-toolbelt \
+		python3-rpm \
 		python3-PyYAML && \
 	zypper clean -a
 

@@ -4,4 +4,5 @@ idna==3.7
 PyYAML==6.0.1
 requests==2.32.3
 requests-toolbelt==1.0.0
+rpm==0.1.0
 urllib3==2.2.2

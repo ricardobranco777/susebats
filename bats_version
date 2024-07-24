@@ -6,8 +6,10 @@ List BATS jobs on o.s.d & o3
 import argparse
 import re
 import sys
+from concurrent.futures import ThreadPoolExecutor
 
-from bats.job import get_job
+from bats.job import get_job, Job
+from bats.suse import fetch_version
 
 
 VERSION = re.compile(
@@ -44,6 +46,7 @@ def main() -> None:
         prog="bats_version",
         description="print versions of BATS tested packages in openQA job",
     )
+    parser.add_argument("-v", "--verbose", action="store_true")
     parser.add_argument("url", help="openQA job")
     args = parser.parse_args()
 
@@ -51,6 +54,13 @@ def main() -> None:
     if job is None:
         sys.exit(f"ERROR: {args.url}")
 
+    print_versions(job, verbose=args.verbose)
+
+
+def print_versions(job: Job, verbose: bool = False) -> None:
+    """
+    Print job
+    """
     versions = {}
     for result in job.results:
         if not result["has_parser_text_result"]:
@@ -62,8 +72,21 @@ def main() -> None:
                     if package not in versions:
                         versions[package] = version
 
+    rpm_versions = {}
+    if verbose:
+        product = job.name.split("-Build")[0]
+        with ThreadPoolExecutor(max_workers=min(10, len(versions))) as executor:
+            for package, rpm_version in zip(
+                versions, executor.map(lambda p: fetch_version(product, p), versions)
+            ):
+                if rpm_version is not None:
+                    rpm_versions[package] = rpm_version
+
     for package in sorted(versions):
-        print(package, versions[package])
+        if package in rpm_versions:
+            print(f"{package:<12}  {versions[package]:<12}  {rpm_versions[package]}")
+        else:
+            print(f"{package:<12}  {versions[package]:<12}")
 
 
 if __name__ == "__main__":

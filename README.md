@@ -87,15 +87,16 @@ SKOPEO_BATS_SKIP_USER='none'
 ## bats_version
 
 ```
-usage: bats_version [-h] url
+usage: bats_version [-h] [-v] url
 
 print versions of BATS tested packages in openQA job
 
 positional arguments:
-  url         openQA job
+  url            openQA job
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help     show this help message and exit
+  -v, --verbose
 ```
 
 Example output:

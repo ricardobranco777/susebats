@@ -3,4 +3,4 @@
 DOCKER="${DOCKER:-podman}"
 IMAGE="${IMAGE:-ghcr.io/ricardobranco777/susebats:latest}"
 
-exec "$DOCKER" run --rm -e GITLAB_TOKEN "$IMAGE" "$@"
+exec "$DOCKER" run --rm -e DEBUG -e GITLAB_TOKEN -e REPOS "$IMAGE" "$@"

@@ -19,6 +19,9 @@ mypy:
 black:
 	@black --check $(FILES)
 
+.PHONY: shellcheck
+	@shellcheck entrypoint.sh susebats
+
 .PHONY: install
 install:
 	install -m 0755 $(BIN) $(HOME)/bin/

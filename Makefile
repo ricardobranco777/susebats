@@ -18,3 +18,11 @@ mypy:
 .PHONY: black
 black:
 	@black --check $(FILES)
+
+.PHONY: install
+install:
+	install -m 0755 $(BIN) $(HOME)/bin/
+
+.PHONY: uninstall
+uninstall:
+	cd $(HOME)/bin ; rm -f $(BIN)

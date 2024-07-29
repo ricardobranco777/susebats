@@ -35,17 +35,19 @@ class Product:
     settings: dict[str, list[str]]
 
 
-def find_products(file: io.TextIOWrapper) -> Iterator[Product]:
+def find_products(file: io.TextIOWrapper) -> list[Product]:
     """
     Find products in YAML schedule with settings containing "BATS_SKIP"
     """
     try:
         data = yaml.safe_load(file)
     except yaml.YAMLError:
-        return
+        return []
 
     if "scenarios" not in data:
-        return
+        return []
+
+    all_products: list[Product] = []
 
     for arch, products in data["scenarios"].items():
         for product, scenarios in products.items():
@@ -66,7 +68,11 @@ def find_products(file: io.TextIOWrapper) -> Iterator[Product]:
                         url = "https://openqa.suse.de"
                     params = data["products"][product] | {"arch": arch, "test": test}
                     url = f"{url}/tests/latest?{urlencode(params)}"
-                    yield Product(name=product, url=url, settings=settings)
+                    all_products.append(
+                        Product(name=product, url=url, settings=settings)
+                    )
+
+    return list(sorted(all_products, key=lambda p: p.url))
 
 
 def grep_tarball(

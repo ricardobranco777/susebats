@@ -16,7 +16,7 @@ def get_urls(repo: str) -> list[str]:
     """
     return [
         product.url
-        for file in grep_tarball(repo, "*.yaml")
+        for file in grep_tarball(repo, "*.yaml", ignore_pattern="*_old.yaml")
         for product in find_products(file)
     ]
 

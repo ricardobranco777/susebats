@@ -78,6 +78,7 @@ def find_products(file: io.TextIOWrapper) -> list[Product]:
 def grep_tarball(
     url: str,
     file_pattern: str,
+    ignore_pattern: str | None = None,
 ) -> Iterator[io.TextIOWrapper]:
     """
     Downloads a tarball and return the content of files
@@ -95,7 +96,11 @@ def grep_tarball(
     try:
         with tarfile.open(fileobj=data, mode="r:gz") as tar:
             for elem in tar.getmembers():
-                if elem.isfile() and fnmatch(elem.name, file_pattern):
+                if not elem.isfile():
+                    continue
+                if ignore_pattern and fnmatch(elem.name, ignore_pattern):
+                    continue
+                if fnmatch(elem.name, file_pattern):
                     file = tar.extractfile(elem)
                     if file is not None:
                         yield io.TextIOWrapper(io.BytesIO(file.read()))

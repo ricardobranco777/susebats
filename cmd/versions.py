@@ -38,18 +38,10 @@ def get_version(title: str, info: str) -> tuple[str, str]:
     return package, version
 
 
-def main() -> None:
+def main_versions(args: argparse.Namespace) -> None:
     """
     Main function
     """
-    parser = argparse.ArgumentParser(
-        prog="bats_version",
-        description="print versions of BATS tested packages in openQA job",
-    )
-    parser.add_argument("-v", "--verbose", action="store_true")
-    parser.add_argument("url", help="openQA job")
-    args = parser.parse_args()
-
     job = get_job(args.url, full=True)
     if job is None:
         sys.exit(f"ERROR: {args.url}")
@@ -87,10 +79,3 @@ def print_versions(job: Job, verbose: bool = False) -> None:
             print(f"{package:<12}  {versions[package]:<12}  {rpm_versions[package]}")
         else:
             print(f"{package:<12}  {versions[package]:<12}")
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(1)

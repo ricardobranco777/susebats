@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 """
 List BATS jobs on o.s.d & o3
 """
 
 import argparse
-import sys
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
@@ -35,19 +33,10 @@ def get_build(url: str, build: str | None) -> str | None:
     return build
 
 
-def main() -> None:
+def main_jobs(args: argparse.Namespace) -> None:
     """
     Main function
     """
-    parser = argparse.ArgumentParser(
-        prog="bats_jobs",
-        description="list BATS jobs in o.s.d & o3",
-        epilog="set GITLAB_TOKEN environment variable for gitlab",
-    )
-    parser.add_argument("-b", "--build", help="-DAYS_AGO or YYYYMMDD")
-    parser.add_argument("-v", "--verbose", action="store_true")
-    args = parser.parse_args()
-
     urls = []
     with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
         for results in executor.map(get_urls, REPOS):
@@ -87,10 +76,3 @@ def print_job(job: Job) -> None:
                 # Skip non-failed sub-tests
                 if test["result"] == "fail":
                     print(f"\t{result['name']:<30}  {test['text_data']}")
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(1)

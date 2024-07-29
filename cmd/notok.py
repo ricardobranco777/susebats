@@ -74,16 +74,10 @@ def process_files(files: list[str]) -> None:
         print(f"{prefix}_{name}='{skip}'")
 
 
-def main() -> None:
+def main_notok(args: argparse.Namespace) -> None:
     """
     Main function
     """
-    parser = argparse.ArgumentParser(
-        description="Generate BATS_SKIP variables from an openQA job URL"
-    )
-    parser.add_argument("url", help="openQA job")
-    args = parser.parse_args()
-
     job = get_job(args.url, full=True)
     if job is None:
         sys.exit(f"ERROR: {args.url}")
@@ -100,10 +94,3 @@ def main() -> None:
             downloaded_files, key=lambda s: s.split("_integration")[0]
         ):
             process_files(list(files))
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(1)

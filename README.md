@@ -6,12 +6,25 @@ Display information on BATS tests in openQA
 
 Docker image available at `ghcr.io/ricardobranco777/susebats:latest`
 
-## bats_jobs
+```
+usage: susebats [-h] [--version] {jobs,list,notok,versions} ...
+
+positional arguments:
+  {jobs,list,notok,versions}
+    jobs                list BATS jobs in o.s.d & o3
+    list                list skipped BATS tests per product
+    notok               Generate BATS_SKIP variables from an openQA job URL
+    versions            print versions of BATS tested packages in openQA job
+
+options:
+  -h, --help            show this help message and exit
+  --version             show program's version number and exit
+```
+
+## susebats jobs
 
 ```
-usage: bats_jobs [-h] [-b BUILD] [-v]
-
-list BATS jobs in o.s.d & o3
+usage: susebats jobs [-h] [-b BUILD] [-v]
 
 options:
   -h, --help            show this help message and exit
@@ -22,12 +35,35 @@ options:
 set GITLAB_TOKEN environment variable for gitlab
 ```
 
-## bats_list
+Example output:
 
 ```
-usage: bats_list [-h]
+# Show jobs from yesterday
+$ susebats -b -1
+passed      https://openqa.opensuse.org/tests/4362949   opensuse-Tumbleweed-DVD-x86_64-Build20240728-containers_host_podman_testsuite@64bit
+passed      https://openqa.opensuse.org/tests/4362870   opensuse-Tumbleweed-DVD-x86_64-Build20240728-containers_host_buildah_testsuite@64bit
+passed      https://openqa.opensuse.org/tests/4364135   opensuse-Tumbleweed-DVD-aarch64-Build20240728-containers_host_podman_testsuite@aarch64
+passed      https://openqa.suse.de/tests/15017941       sle-15-SP3-Server-DVD-Updates-x86_64-Build20240728-1-podman_testsuite@64bit
+passed      https://openqa.suse.de/tests/15019367       sle-15-SP4-Server-DVD-Updates-x86_64-Build20240728-1-podman_testsuite@64bit
+passed      https://openqa.suse.de/tests/15018243       sle-15-SP4-Server-DVD-Updates-x86_64-Build20240728-1-buildah_testsuite@64bit
+passed      https://openqa.suse.de/tests/15018053       sle-15-SP5-Server-DVD-Updates-x86_64-Build20240728-1-podman_testsuite@64bit
+passed      https://openqa.suse.de/tests/15017616       sle-15-SP5-Server-DVD-Updates-x86_64-Build20240728-1-buildah_testsuite@64bit
+passed      https://openqa.suse.de/tests/15017694       sle-15-SP6-Server-DVD-Updates-x86_64-Build20240728-1-podman_testsuite@64bit
+passed      https://openqa.suse.de/tests/15017532       sle-15-SP6-Server-DVD-Updates-x86_64-Build20240728-1-buildah_testsuite@64bit
+running     https://openqa.suse.de/tests/15020740       sle-15-SP3-Server-DVD-Updates-aarch64-Build20240728-1-podman_testsuite@aarch64-virtio
+passed      https://openqa.suse.de/tests/15018544       sle-15-SP4-Server-DVD-Updates-aarch64-Build20240728-1-podman_testsuite@aarch64-virtio
+passed      https://openqa.suse.de/tests/15018165       sle-15-SP5-Server-DVD-Updates-aarch64-Build20240728-1-podman_testsuite@aarch64-virtio
+passed      https://openqa.suse.de/tests/15017011       sle-15-SP6-Server-DVD-Updates-aarch64-Build20240728-1-podman_testsuite@aarch64-virtio
+passed      https://openqa.suse.de/tests/15015207       sle-micro-5.5-Default-Updates-x86_64-Build20240728-1-slem_podman_testsuite@64bit
+passed      https://openqa.suse.de/tests/15018166       sle-micro-5.5-Default-Updates-aarch64-Build20240728-1-slem_podman_testsuite@aarch64
+passed      https://openqa.suse.de/tests/15018166       sle-micro-5.5-Default-Updates-aarch64-Build20240728-1-slem_podman_testsuite@aarch64
+passed      https://openqa.suse.de/tests/15015207       sle-micro-5.5-Default-Updates-x86_64-Build20240728-1-slem_podman_testsuite@64bit
+```
 
-list skipped BATS tests per product
+## susebats list
+
+```
+usage: susebats list [-h]
 
 options:
   -h, --help  show this help message and exit
@@ -38,6 +74,7 @@ set GITLAB_TOKEN environment variable for gitlab
 Example output:
 
 ```
+$ susebats list
 opensuse-Tumbleweed-DVD-aarch64     https://openqa.opensuse.org/tests/latest?arch=aarch64&test=containers_host_podman_testsuite&distri=opensuse&flavor=DVD&version=Tumbleweed
 	AARDVARK_BATS_SKIP="100-basic-name-resolution 200-two-networks 300-three-networks 500-reverse-lookups"
 	NETAVARK_BATS_SKIP="001-basic 100-bridge-iptables 200-bridge-firewalld 250-bridge-nftables 500-plugin"
@@ -50,14 +87,12 @@ opensuse-Tumbleweed-DVD-aarch64     https://openqa.opensuse.org/tests/latest?arc
 ...
 ```
 
-## bats_notok
+## susebats notok
 
-Generate BATS_SKIP variables from an openQA job URL
+Generate `BATS_SKIP` variables from an openQA job URL
 
 ```
-usage: bats_notok [-h] url
-
-Generate BATS_SKIP variables from an openQA job URL
+usage: susebats notok [-h] url
 
 positional arguments:
   url         openQA job
@@ -69,7 +104,7 @@ options:
 Example output:
 
 ```
-./bats_notok https://openqa.suse.de/tests/14632422
+$ susebats notok https://openqa.suse.de/tests/14632422
 NETAVARK_BATS_SKIP='001-basic 100-bridge-iptables 200-bridge-firewalld'
 PODMAN_BATS_SKIP='none'
 PODMAN_BATS_SKIP_ROOT_LOCAL='120-load 250-systemd 520-checkpoint'
@@ -84,12 +119,10 @@ SKOPEO_BATS_SKIP_ROOT='none'
 SKOPEO_BATS_SKIP_USER='none'
 ```
 
-## bats_version
+## susebats versions
 
 ```
-usage: bats_version [-h] [-v] url
-
-print versions of BATS tested packages in openQA job
+usage: susebats versions [-h] [-v] url
 
 positional arguments:
   url            openQA job
@@ -102,7 +135,7 @@ options:
 Example output:
 
 ```
-./bats_version https://openqa.opensuse.org/tests/4355590
+$ susebats versions https://openqa.opensuse.org/tests/4355590
 skopeo 1.15.1
 podman 5.1.2
 runc 1.2.0-rc.1

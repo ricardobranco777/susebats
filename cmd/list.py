@@ -4,7 +4,6 @@ List skipped BATS tests on all schedules
 """
 
 import argparse
-import sys
 from concurrent.futures import ThreadPoolExecutor
 
 from bats.repos import REPOS, Product, find_products, grep_tarball
@@ -21,16 +20,11 @@ def get_products(repo: str) -> list[Product]:
     ]
 
 
-def main() -> None:
+def main_list(args: argparse.Namespace) -> None:
     """
     Main function
     """
-    parser = argparse.ArgumentParser(
-        prog="bats_list",
-        description="list skipped BATS tests per product",
-        epilog="set GITLAB_TOKEN environment variable for gitlab",
-    )
-    parser.parse_args()
+    _ = args
 
     with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
         for products in executor.map(get_products, REPOS):
@@ -38,10 +32,3 @@ def main() -> None:
                 print(f"{product.name}\t{product.url}")
                 for setting, values in product.settings.items():
                     print(f"\t{setting}='{' '.join(values)}'")
-
-
-if __name__ == "__main__":
-    try:
-        main()
-    except KeyboardInterrupt:
-        sys.exit(1)

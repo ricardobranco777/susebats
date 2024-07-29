@@ -1,4 +1,4 @@
-FILES=bats_jobs bats_list bats_notok bats_version bats/*.py
+FILES=*.py cmd/*.py bats/*.py
 
 .PHONY: all
 all: flake8 pylint mypy black
@@ -13,7 +13,7 @@ pylint:
 
 .PHONY: mypy
 mypy:
-	@for f in $(FILES) ; do mypy $$f ; done
+	@mypy $(FILES)
 
 .PHONY: black
 black:

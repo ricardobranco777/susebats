@@ -50,6 +50,7 @@ def main() -> None:
         "notok",
         help="Generate BATS_SKIP variables from an openQA job URL",
     )
+    parser_notok.add_argument("-v", "--verbose", action="store_true")
     parser_notok.add_argument("url", help="openQA job")
     parser_notok.set_defaults(func=main_notok)
 

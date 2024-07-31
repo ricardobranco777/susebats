@@ -92,13 +92,14 @@ opensuse-Tumbleweed-DVD-aarch64     https://openqa.opensuse.org/tests/latest?arc
 Generate `BATS_SKIP` variables from an openQA job URL
 
 ```
-usage: susebats notok [-h] url
+usage: susebats notok [-h] [-v] url
 
 positional arguments:
   url         openQA job
 
 options:
   -h, --help  show this help message and exit
+  -v, --verbose
 ```
 
 Example output:

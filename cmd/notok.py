@@ -76,6 +76,15 @@ def main_notok(args: argparse.Namespace) -> None:
         with ThreadPoolExecutor(max_workers=min(10, len(logs))) as executor:
             downloaded_files = filter(None, executor.map(download_file, logs))
 
+        if args.verbose:
+            for file in downloaded_files:
+                failed = grep_notok(job, file)
+                for test in failed:
+                    print(file, test.url)
+                    for sub in failed[test]:
+                        print(sub)
+            sys.exit(0)
+
         # Group multiple .tap files by their prefixes:
         # (podman|buildah|etc)_integration_.*.tap
         for _, files in groupby(

@@ -14,7 +14,7 @@ GIT_VERSION = re.compile(rf"{PACKAGES} version$")
 RPM_VERSION = re.compile(rf"{PACKAGES} package version$")
 
 
-@dataclass
+@dataclass(frozen=True)
 class Version:
     """
     Version class

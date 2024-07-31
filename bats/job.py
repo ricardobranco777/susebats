@@ -12,7 +12,7 @@ from requests.exceptions import RequestException
 from bats.session import session, TIMEOUT
 
 
-@dataclass
+@dataclass(frozen=True)
 class Job:
     """
     Job class

@@ -24,7 +24,7 @@ REPOS = os.getenv(
 ).split()
 
 
-@dataclass
+@dataclass(frozen=True)
 class Product:
     """
     Product class

@@ -6,9 +6,36 @@ tap module
 import os
 import re
 from collections import defaultdict
+from dataclasses import dataclass
+
+from bats.job import Job
+from bats.versions import get_versions
 
 
-def grep_notok(file: str) -> dict[str, list[str]]:
+_TEST_URL = {
+    "aardvark-dns": "https://github.com/containers/aardvark-dns/tree/{}/test/{}.bats",
+    "buildah": "https://github.com/containers/buildah/tree/{}/tests/{}.bats",
+    "netavark": "https://github.com/containers/netavark/tree/{}/test/{}.bats",
+    "podman": "https://github.com/containers/podman/tree/{}/test/system/{}.bats",
+    "runc": "https://github.com/opencontainers/runc/tree/{}/tests/integration/{}.bats",
+    "skopeo": "https://github.com/containers/skopeo/tree/{}/systemtest/{}.bats",
+}
+
+
+@dataclass(frozen=True)
+class Test:
+    """
+    Test class
+    """
+
+    name: str
+    url: str
+
+    def __str__(self) -> str:
+        return self.name
+
+
+def grep_notok(job: Job, file: str) -> dict[Test, list[str]]:
     """
     Find the failed tests in a .tap file
     """
@@ -38,4 +65,11 @@ def grep_notok(file: str) -> dict[str, list[str]]:
     if test and buffer:
         tests[test].append("\n".join(buffer) + "\n")
 
-    return tests
+    package = file.split("_")[0]
+    if package == "aardvark":
+        package = "aardvark-dns"
+    version = get_versions(job.results)[package].git_version
+    return {
+        Test(name=test, url=_TEST_URL[package].format(version, test)): tests[test]
+        for test in tests
+    }

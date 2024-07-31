@@ -15,7 +15,7 @@ from itertools import groupby
 
 from requests.exceptions import RequestException
 
-from bats.job import get_job, session, TIMEOUT
+from bats.job import get_job, Job, session, TIMEOUT
 from bats.tap import grep_notok
 
 
@@ -36,14 +36,14 @@ def download_file(url: str) -> str | None:
     return filename
 
 
-def process_files(files: list[str]) -> None:
+def process_files(job: Job, files: list[str]) -> None:
     """
     Process .tap files
     """
     skip_common = set()
     found: dict[str, set] = {}
     for file in files:
-        found[file] = set(grep_notok(file).keys())
+        found[file] = set(map(str, grep_notok(job, file).keys()))
     # Find failed subtests in all scenarios for general skip variable
     skip_common = reduce(lambda x, y: x & y, found.values())
     if len(files) > 1:
@@ -81,4 +81,4 @@ def main_notok(args: argparse.Namespace) -> None:
         for _, files in groupby(
             downloaded_files, key=lambda s: s.split("_integration")[0]
         ):
-            process_files(list(files))
+            process_files(job, list(files))

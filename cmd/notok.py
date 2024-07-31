@@ -43,7 +43,7 @@ def process_files(files: list[str]) -> None:
     skip_common = set()
     found: dict[str, set] = {}
     for file in files:
-        found[file] = grep_notok(file)
+        found[file] = set(grep_notok(file).keys())
     # Find failed subtests in all scenarios for general skip variable
     skip_common = reduce(lambda x, y: x & y, found.values())
     if len(files) > 1:

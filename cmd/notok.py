@@ -78,7 +78,7 @@ def main_notok(args: argparse.Namespace) -> None:
 
         if args.verbose:
             for file in downloaded_files:
-                failed = grep_notok(job, file)
+                failed = grep_notok(job, file, alles=args.verbose > 1)
                 for test in failed:
                     print(file, test.url)
                     for sub in failed[test]:

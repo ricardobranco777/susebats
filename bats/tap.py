@@ -35,7 +35,7 @@ class Test:
         return self.name
 
 
-def grep_notok(job: Job, file: str) -> dict[Test, list[str]]:
+def grep_notok(job: Job, file: str, alles: bool = True) -> dict[Test, list[str]]:
     """
     Find the failed tests in a .tap file
     """
@@ -65,6 +65,10 @@ def grep_notok(job: Job, file: str) -> dict[Test, list[str]]:
     if test and buffer:
         tests[test].append("\n".join(buffer) + "\n")
 
+    if not alles:
+        for test in tests:
+            tests[test] = list(filter(lambda s: not s.startswith("#"), tests[test]))
+
     package = file.split("_")[0]
     if package == "aardvark":
         package = "aardvark-dns"
@@ -72,4 +76,5 @@ def grep_notok(job: Job, file: str) -> dict[Test, list[str]]:
     return {
         Test(name=test, url=_TEST_URL[package].format(version, test)): tests[test]
         for test in tests
+        if tests[test]
     }

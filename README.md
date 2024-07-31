@@ -95,10 +95,14 @@ Generate `BATS_SKIP` variables from an openQA job URL
 usage: susebats notok [-h] [-v] url
 
 positional arguments:
-  url         openQA job
+  url            openQA job
 
 options:
-  -h, --help  show this help message and exit
+  -h, --help     show this help message and exit
+  -v, --verbose  may be specified more than once
+
+positional arguments:
+  url         openQA job
   -v, --verbose
 ```
 

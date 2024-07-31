@@ -6,7 +6,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from bats.repos import REPOS, find_products, grep_tarball
+from bats.repos import REPOS, get_products
 from bats.job import get_job, Job
 
 
@@ -14,11 +14,7 @@ def get_urls(repo: str) -> list[str]:
     """
     Get URL's from YAML schedules in repo
     """
-    return [
-        product.url
-        for file in grep_tarball(repo, "*.yaml")
-        for product in find_products(file)
-    ]
+    return [product.url for product in get_products(repo)]
 
 
 def get_build(url: str, build: str | None) -> str | None:

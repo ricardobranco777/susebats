@@ -107,3 +107,14 @@ def grep_tarball(
     except tarfile.ReadError as error:
         # May fail because GITLAB_TOKEN is not set
         print(f"ERROR: {url}: {error}", file=sys.stderr)
+
+
+def get_products(repo: str) -> list[Product]:
+    """
+    Get products from YAML schedules in repo
+    """
+    return [
+        product
+        for file in grep_tarball(repo, "*.yaml")
+        for product in find_products(file)
+    ]

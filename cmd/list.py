@@ -6,18 +6,7 @@ List skipped BATS tests on all schedules
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from bats.repos import REPOS, Product, find_products, grep_tarball
-
-
-def get_products(repo: str) -> list[Product]:
-    """
-    Get products from YAML schedules in repo
-    """
-    return [
-        product
-        for file in grep_tarball(repo, "*.yaml")
-        for product in find_products(file)
-    ]
+from bats.repos import REPOS, get_products
 
 
 def main_list(args: argparse.Namespace) -> None:

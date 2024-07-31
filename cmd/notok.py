@@ -19,6 +19,9 @@ from bats.job import get_job, Job, session, TIMEOUT
 from bats.tap import grep_notok
 
 
+TAP_REGEX = r"-((?:root|user)(?:-(?:local|remote))?)\.tap$"
+
+
 def download_file(url: str) -> str | None:
     """
     Download a file from URL to current directory
@@ -49,15 +52,13 @@ def process_files(job: Job, files: list[str]) -> None:
     if len(files) > 1:
         for file in files:
             found[file] -= skip_common
-
     prefix = files[0].split("_")[0].upper() + "_BATS_SKIP"
     skip = " ".join(sorted(skip_common)) or "none"
     print(f"{prefix}='{skip}'")
     if len(files) == 1:
         return
     for file in files:
-        name = re.findall(r"-((?:root|user)(?:-(?:local|remote))?)\.tap$", file)[0]
-        name = name.replace("-", "_").upper()
+        name = re.findall(TAP_REGEX, file)[0].replace("-", "_").upper()
         skip = " ".join(sorted(found[file])) or "none"
         print(f"{prefix}_{name}='{skip}'")
 

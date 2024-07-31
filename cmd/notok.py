@@ -16,6 +16,7 @@ from itertools import groupby
 from requests.exceptions import RequestException
 
 from bats.job import get_job, session, TIMEOUT
+from bats.tap import grep_notok
 
 
 def download_file(url: str) -> str | None:
@@ -33,19 +34,6 @@ def download_file(url: str) -> str | None:
         print(f"ERROR: {url}: {error}", file=sys.stderr)
         return None
     return filename
-
-
-def grep_notok(file: str) -> set[str]:
-    """
-    Find the failed tests in a .tap file
-    """
-    tests = set()
-    with open(file, encoding="utf-8") as f:
-        failed = [line for line in f.read().splitlines() if "in test file" in line]
-    for fail in failed:
-        test = re.findall(r"/(.*?\.bats)", fail)[0]
-        tests.add(os.path.basename(test.removesuffix(".bats")))
-    return tests
 
 
 def process_files(files: list[str]) -> None:

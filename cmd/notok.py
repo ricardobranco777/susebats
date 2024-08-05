@@ -19,10 +19,11 @@ from bats.tap import download_file, grep_notok
 TAP_REGEX = r"-((?:root|user)(?:-(?:local|remote))?)\.tap$"
 
 
-def process_files(job: Job, files: list[str]) -> None:
+def process_files(job: Job, files: list[str]) -> dict[str, str]:
     """
     Process .tap files
     """
+    info = {}
     skip_common = set()
     found: dict[str, set] = {}
     for file in files:
@@ -32,15 +33,13 @@ def process_files(job: Job, files: list[str]) -> None:
     if len(files) > 1:
         for file in files:
             found[file] -= skip_common
-    prefix = files[0].split("_")[0].upper() + "_BATS_SKIP"
-    skip = " ".join(sorted(skip_common)) or "none"
-    print(f"{prefix}='{skip}'")
-    if len(files) == 1:
-        return
-    for file in files:
-        name = re.findall(TAP_REGEX, file)[0].replace("-", "_").upper()
-        skip = " ".join(sorted(found[file])) or "none"
-        print(f"{prefix}_{name}='{skip}'")
+    package = files[0].split("_")[0].upper() + "_BATS_SKIP"
+    info[package] = " ".join(sorted(skip_common)) or "none"
+    if len(files) > 1:
+        for file in files:
+            skip = re.findall(TAP_REGEX, file)[0].replace("-", "_").upper()
+            info[f"{package}_{skip}"] = " ".join(sorted(found[file])) or "none"
+    return info
 
 
 def main_notok(args: argparse.Namespace) -> None:
@@ -71,4 +70,6 @@ def main_notok(args: argparse.Namespace) -> None:
         for _, files in groupby(
             downloaded_files, key=lambda s: s.split("_integration")[0]
         ):
-            process_files(job, list(files))
+            info = process_files(job, list(files))
+            for key, value in info.items():
+                print(f"{key}='{value}'")

@@ -72,4 +72,8 @@ def main_notok(args: argparse.Namespace) -> None:
         ):
             info = process_files(job, list(files))
             for key, value in info.items():
-                print(f"{key}='{value}'")
+                if args.diff and job.settings.get(key) != value:
+                    print(f"-{key}='{job.settings[key]}'")
+                    print(f"+{key}='{value}'")
+                else:
+                    print(f"{key}='{value}'")

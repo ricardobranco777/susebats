@@ -99,6 +99,7 @@ positional arguments:
 
 options:
   -h, --help     show this help message and exit
+  -d, --diff     show diff of settings
   -v, --verbose  may be specified more than once
 
 positional arguments:

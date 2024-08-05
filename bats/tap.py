@@ -1,14 +1,16 @@
-#!/usr/bin/env python3
 """
 tap module
 """
 
 import os
 import re
+import sys
 from collections import defaultdict
 from dataclasses import dataclass
 
-from bats.job import Job
+from requests.exceptions import RequestException
+
+from bats.job import Job, session, TIMEOUT
 from bats.versions import get_versions
 
 
@@ -78,3 +80,20 @@ def grep_notok(job: Job, file: str, alles: bool = True) -> dict[Test, list[str]]
         for test in tests
         if tests[test]
     }
+
+
+def download_file(url: str) -> str | None:
+    """
+    Download a file from URL to current directory
+    """
+    filename = os.path.basename(url)
+    try:
+        with session.get(url, stream=True, timeout=TIMEOUT) as r:
+            r.raise_for_status()
+            with open(filename, "xb") as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+    except RequestException as error:
+        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        return None
+    return filename

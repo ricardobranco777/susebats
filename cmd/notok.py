@@ -5,7 +5,6 @@ Generate BATS_SKIP variables from an openQA job URL
 
 import argparse
 import contextlib
-import os
 import re
 import sys
 import tempfile
@@ -13,30 +12,11 @@ from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 from itertools import groupby
 
-from requests.exceptions import RequestException
-
-from bats.job import get_job, Job, session, TIMEOUT
-from bats.tap import grep_notok
+from bats.job import get_job, Job
+from bats.tap import download_file, grep_notok
 
 
 TAP_REGEX = r"-((?:root|user)(?:-(?:local|remote))?)\.tap$"
-
-
-def download_file(url: str) -> str | None:
-    """
-    Download a file from URL to current directory
-    """
-    filename = os.path.basename(url)
-    try:
-        with session.get(url, stream=True, timeout=TIMEOUT) as r:
-            r.raise_for_status()
-            with open(filename, "xb") as f:
-                for chunk in r.iter_content(chunk_size=8192):
-                    f.write(chunk)
-    except RequestException as error:
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
-        return None
-    return filename
 
 
 def process_files(job: Job, files: list[str]) -> None:

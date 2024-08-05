@@ -53,7 +53,7 @@ def find_products(file: io.TextIOWrapper) -> list[Product]:
         for product, scenarios in products.items():
             for scenario in filter(lambda s: isinstance(s, dict), scenarios):
                 for test in scenario.keys():
-                    if "settings" not in scenario[test]:
+                    if scenario[test] is None or "settings" not in scenario[test]:
                         continue
                     settings = {
                         setting: scenario[test]["settings"][setting].split()

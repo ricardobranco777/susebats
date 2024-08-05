@@ -14,12 +14,22 @@ from itertools import groupby
 
 from bats.job import get_job, Job
 from bats.tap import download_file, grep_notok
+from bats.versions import get_versions
 
 
 TAP_REGEX = r"-((?:root|user)(?:-(?:local|remote))?)\.tap$"
 
+TEST_URL = {
+    "aardvark-dns": "https://github.com/containers/aardvark-dns/tree/{}/test/{}.bats",
+    "buildah": "https://github.com/containers/buildah/tree/{}/tests/{}.bats",
+    "netavark": "https://github.com/containers/netavark/tree/{}/test/{}.bats",
+    "podman": "https://github.com/containers/podman/tree/{}/test/system/{}.bats",
+    "runc": "https://github.com/opencontainers/runc/tree/{}/tests/integration/{}.bats",
+    "skopeo": "https://github.com/containers/skopeo/tree/{}/systemtest/{}.bats",
+}
 
-def process_files(job: Job, files: list[str]) -> dict[str, str]:
+
+def process_files(files: list[str]) -> dict[str, str]:
     """
     Process .tap files
     """
@@ -27,7 +37,7 @@ def process_files(job: Job, files: list[str]) -> dict[str, str]:
     skip_common = set()
     found: dict[str, set] = {}
     for file in files:
-        found[file] = set(map(str, grep_notok(job, file).keys()))
+        found[file] = set(map(str, grep_notok(file).keys()))
     # Find failed subtests in all scenarios for general skip variable
     skip_common = reduce(lambda x, y: x & y, found.values())
     if len(files) > 1:
@@ -54,26 +64,43 @@ def main_notok(args: argparse.Namespace) -> None:
 
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
         with ThreadPoolExecutor(max_workers=min(10, len(logs))) as executor:
-            downloaded_files = filter(None, executor.map(download_file, logs))
+            downloaded_files = list(filter(None, executor.map(download_file, logs)))
 
         if args.verbose:
-            for file in downloaded_files:
-                failed = grep_notok(job, file, alles=args.verbose > 1)
-                for test in failed:
-                    print(file, test.url)
-                    for sub in failed[test]:
-                        print(sub)
-            sys.exit(0)
+            print_failures(job, downloaded_files, alles=args.verbose > 1)
+        else:
+            print_settings(job, downloaded_files, diff=args.diff)
 
-        # Group multiple .tap files by their prefixes:
-        # (podman|buildah|etc)_integration_.*.tap
-        for _, files in groupby(
-            downloaded_files, key=lambda s: s.split("_integration")[0]
-        ):
-            info = process_files(job, list(files))
-            for key, value in info.items():
-                if args.diff and job.settings.get(key) != value:
-                    print(f"-{key}='{job.settings[key]}'")
-                    print(f"+{key}='{value}'")
-                else:
-                    print(f"{key}='{value}'")
+
+def print_failures(job: Job, tap_files: list[str], alles: bool = False) -> None:
+    """
+    Print job failures
+    """
+    versions = get_versions(job.results)
+    for file in tap_files:
+        package = file.split("_")[0]
+        if package == "aardvark":
+            package = "aardvark-dns"
+        version = versions[package].git_version
+        failed = grep_notok(file, alles=alles)
+        for test in failed:
+            test_url = TEST_URL[package].format(version, test)
+            print(file, test_url)
+            for sub in failed[test]:
+                print(sub)
+
+
+def print_settings(job: Job, tap_files: list[str], diff: bool = False) -> None:
+    """
+    Print job settings
+    """
+    # Group multiple .tap files by their prefixes:
+    # (podman|buildah|etc)_integration_.*.tap
+    for _, files in groupby(tap_files, key=lambda s: s.split("_integration")[0]):
+        info = process_files(list(files))
+        for key, value in info.items():
+            if diff and job.settings.get(key) != value:
+                print(f"-{key}='{job.settings[key]}'")
+                print(f"+{key}='{value}'")
+            else:
+                print(f"{key}='{value}'")

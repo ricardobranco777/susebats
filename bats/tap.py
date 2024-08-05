@@ -6,38 +6,13 @@ import os
 import re
 import sys
 from collections import defaultdict
-from dataclasses import dataclass
 
 from requests.exceptions import RequestException
 
-from bats.job import Job, session, TIMEOUT
-from bats.versions import get_versions
+from bats.session import session, TIMEOUT
 
 
-_TEST_URL = {
-    "aardvark-dns": "https://github.com/containers/aardvark-dns/tree/{}/test/{}.bats",
-    "buildah": "https://github.com/containers/buildah/tree/{}/tests/{}.bats",
-    "netavark": "https://github.com/containers/netavark/tree/{}/test/{}.bats",
-    "podman": "https://github.com/containers/podman/tree/{}/test/system/{}.bats",
-    "runc": "https://github.com/opencontainers/runc/tree/{}/tests/integration/{}.bats",
-    "skopeo": "https://github.com/containers/skopeo/tree/{}/systemtest/{}.bats",
-}
-
-
-@dataclass(frozen=True)
-class Test:
-    """
-    Test class
-    """
-
-    name: str
-    url: str
-
-    def __str__(self) -> str:
-        return self.name
-
-
-def grep_notok(job: Job, file: str, alles: bool = True) -> dict[Test, list[str]]:
+def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
     """
     Find the failed tests in a .tap file
     """
@@ -71,15 +46,7 @@ def grep_notok(job: Job, file: str, alles: bool = True) -> dict[Test, list[str]]
         for test in tests:
             tests[test] = list(filter(lambda s: not s.startswith("#"), tests[test]))
 
-    package = file.split("_")[0]
-    if package == "aardvark":
-        package = "aardvark-dns"
-    version = get_versions(job.results)[package].git_version
-    return {
-        Test(name=test, url=_TEST_URL[package].format(version, test)): tests[test]
-        for test in tests
-        if tests[test]
-    }
+    return {test: tests[test] for test in tests if tests[test]}
 
 
 def download_file(url: str) -> str | None:

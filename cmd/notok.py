@@ -14,19 +14,10 @@ from itertools import groupby
 
 from bats.job import get_job, Job
 from bats.tap import download_file, grep_notok
-from bats.versions import get_versions
+from bats.versions import get_versions, TEST_URL
 
 
 TAP_REGEX = r"-((?:root|user)(?:-(?:local|remote))?)\.tap$"
-
-TEST_URL = {
-    "aardvark-dns": "https://github.com/containers/aardvark-dns/tree/{}/test/{}.bats",
-    "buildah": "https://github.com/containers/buildah/tree/{}/tests/{}.bats",
-    "netavark": "https://github.com/containers/netavark/tree/{}/test/{}.bats",
-    "podman": "https://github.com/containers/podman/tree/{}/test/system/{}.bats",
-    "runc": "https://github.com/opencontainers/runc/tree/{}/tests/integration/{}.bats",
-    "skopeo": "https://github.com/containers/skopeo/tree/{}/systemtest/{}.bats",
-}
 
 
 def process_files(files: list[str]) -> dict[str, str]:
@@ -79,8 +70,6 @@ def print_failures(job: Job, tap_files: list[str], alles: bool = False) -> None:
     versions = get_versions(job.results)
     for file in tap_files:
         package = file.split("_")[0]
-        if package == "aardvark":
-            package = "aardvark-dns"
         version = versions[package].git_version
         failed = grep_notok(file, alles=alles)
         for test in failed:

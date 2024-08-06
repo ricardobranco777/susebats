@@ -13,6 +13,16 @@ PACKAGES = r"(aardvark-dns|buildah|netavark|podman|runc|skopeo)"
 GIT_VERSION = re.compile(rf"{PACKAGES} version$")
 RPM_VERSION = re.compile(rf"{PACKAGES} package version$")
 
+TEST_URL = {
+    "aardvark": "https://github.com/containers/aardvark-dns/tree/{}/test/{}.bats",
+    "aardvark-dns": "https://github.com/containers/aardvark-dns/tree/{}/test/{}.bats",
+    "buildah": "https://github.com/containers/buildah/tree/{}/tests/{}.bats",
+    "netavark": "https://github.com/containers/netavark/tree/{}/test/{}.bats",
+    "podman": "https://github.com/containers/podman/tree/{}/test/system/{}.bats",
+    "runc": "https://github.com/opencontainers/runc/tree/{}/tests/integration/{}.bats",
+    "skopeo": "https://github.com/containers/skopeo/tree/{}/systemtest/{}.bats",
+}
+
 
 @dataclass(frozen=True)
 class Version:

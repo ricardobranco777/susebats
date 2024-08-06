@@ -6,27 +6,8 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from bats.repos import REPOS, get_products
+from bats.repos import REPOS, get_build, get_urls
 from bats.job import get_job, Job
-
-
-def get_urls(repo: str) -> list[str]:
-    """
-    Get URL's from YAML schedules in repo
-    """
-    return [product.url for product in get_products(repo)]
-
-
-def get_build(url: str, build: str | None) -> str | None:
-    """
-    Normalize build
-    """
-    if not build:
-        return None
-    # Append "-1" to aggregate tests in o.s.d
-    if "openqa.suse.de" in url and build.isdigit():
-        return f"{build}-1"
-    return build
 
 
 def main_jobs(args: argparse.Namespace) -> None:

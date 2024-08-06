@@ -6,7 +6,7 @@ List skipped BATS tests on all schedules
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 
-from bats.repos import REPOS, get_products
+from bats.repos import REPOS, get_tests
 
 
 def main_list(args: argparse.Namespace) -> None:
@@ -16,8 +16,8 @@ def main_list(args: argparse.Namespace) -> None:
     _ = args
 
     with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
-        for products in executor.map(get_products, REPOS):
-            for product in products:
-                print(f"{product.name}\t{product.url}")
-                for setting, values in product.settings.items():
+        for tests in executor.map(get_tests, REPOS):
+            for test in tests:
+                print(f"{test.product}\t{test.url}")
+                for setting, values in test.settings.items():
                     print(f"\t{setting}='{' '.join(values)}'")

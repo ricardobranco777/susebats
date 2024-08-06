@@ -7,10 +7,11 @@ Display information on BATS tests in openQA
 Docker image available at `ghcr.io/ricardobranco777/susebats:latest`
 
 ```
-usage: susebats [-h] [--version] {jobs,list,notok,versions} ...
+usage: susebats [-h] [--version] {all,jobs,list,notok,versions} ...
 
 positional arguments:
-  {jobs,list,notok,versions}
+  {all,jobs,list,notok,versions}
+    all                 dump all as json
     jobs                list BATS jobs in o.s.d & o3
     list                list skipped BATS tests per product
     notok               Generate BATS_SKIP variables from an openQA job URL

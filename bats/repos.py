@@ -25,19 +25,23 @@ REPOS = os.getenv(
 
 
 @dataclass(frozen=True)
-class Product:
+class Test:
     """
-    Product class
+    Test class
     """
 
+    arch: str
+    distri: str
     name: str
+    product: str
     url: str
     settings: dict[str, list[str]]
+    version: str
 
 
-def find_products(file: io.TextIOWrapper) -> list[Product]:
+def find_tests(file: io.TextIOWrapper) -> list[Test]:
     """
-    Find products in YAML schedule with settings containing "BATS_SKIP"
+    Find tests in YAML schedule with settings containing "BATS_SKIP"
     """
     try:
         data = yaml.safe_load(file)
@@ -47,7 +51,7 @@ def find_products(file: io.TextIOWrapper) -> list[Product]:
     if "scenarios" not in data:
         return []
 
-    all_products: list[Product] = []
+    all_tests: list[Test] = []
 
     for arch, products in data["scenarios"].items():
         for product, scenarios in products.items():
@@ -68,11 +72,19 @@ def find_products(file: io.TextIOWrapper) -> list[Product]:
                         url = "https://openqa.suse.de"
                     params = data["products"][product] | {"arch": arch, "test": test}
                     url = f"{url}/tests/latest?{urlencode(params)}"
-                    all_products.append(
-                        Product(name=product, url=url, settings=settings)
+                    all_tests.append(
+                        Test(
+                            arch=arch,
+                            distri=data["products"][product]["distri"],
+                            name=test,
+                            product=product,
+                            url=url,
+                            settings=settings,
+                            version=data["products"][product]["version"],
+                        )
                     )
 
-    return list(sorted(all_products, key=lambda p: p.url))
+    return list(sorted(all_tests, key=lambda p: p.url))
 
 
 def grep_tarball(
@@ -109,22 +121,18 @@ def grep_tarball(
         print(f"ERROR: {url}: {error}", file=sys.stderr)
 
 
-def get_products(repo: str) -> list[Product]:
+def get_tests(repo: str) -> list[Test]:
     """
-    Get products from YAML schedules in repo
+    Get tests from YAML schedules in repo
     """
-    return [
-        product
-        for file in grep_tarball(repo, "*.yaml")
-        for product in find_products(file)
-    ]
+    return [test for file in grep_tarball(repo, "*.yaml") for test in find_tests(file)]
 
 
 def get_urls(repo: str) -> list[str]:
     """
     Get URL's from YAML schedules in repo
     """
-    return [product.url for product in get_products(repo)]
+    return [test.url for test in get_tests(repo)]
 
 
 def get_build(url: str, build: str | None) -> str | None:

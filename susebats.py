@@ -6,6 +6,7 @@ susebats
 import argparse
 import sys
 
+from cmd.all import main_all
 from cmd.jobs import main_jobs
 from cmd.list import main_list
 from cmd.notok import main_notok
@@ -29,6 +30,13 @@ def main() -> None:
     )
     parser.add_argument("--version", action="version", version=VERSION)
     subparsers = parser.add_subparsers(dest="command", required=False)
+
+    parser_all = subparsers.add_parser(
+        "all",
+        help="dump all as json",
+        epilog="set GITLAB_TOKEN environment variable for gitlab",
+    )
+    parser_all.set_defaults(func=main_all)
 
     parser_jobs = subparsers.add_parser(
         "jobs",

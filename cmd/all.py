@@ -47,7 +47,7 @@ def main_all(args: argparse.Namespace) -> None:
                 tests,
             ),
         ):
-            if job is None:
+            if job is None or job.result not in {"passed", "failed"}:
                 continue
             info = {
                 field.name: getattr(job, field.name)

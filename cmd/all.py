@@ -55,7 +55,10 @@ def main_all(args: argparse.Namespace) -> None:
                 if field.name not in {"results"}
             }
             info["logs"] = get_logs(job)
-            items[test.distri][test.version][test.arch][test.name] = {
+            arch = job.settings["ARCH"]
+            distri = job.settings["DISTRI"]
+            version = job.settings["VERSION"]
+            items[distri][version][arch][test.name] = {
                 "test": asdict(test),
                 "job": info,
             }

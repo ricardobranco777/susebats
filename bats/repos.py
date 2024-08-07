@@ -30,13 +30,10 @@ class Test:
     Test class
     """
 
-    arch: str
-    distri: str
     name: str
     product: str
     url: str
     settings: dict[str, list[str]]
-    version: str
 
 
 def find_tests(file: io.TextIOWrapper) -> list[Test]:
@@ -73,15 +70,7 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
                     params = data["products"][product] | {"arch": arch, "test": test}
                     url = f"{url}/tests/latest?{urlencode(params)}"
                     all_tests.append(
-                        Test(
-                            arch=arch,
-                            distri=data["products"][product]["distri"],
-                            name=test,
-                            product=product,
-                            url=url,
-                            settings=settings,
-                            version=data["products"][product]["version"],
-                        )
+                        Test(name=test, product=product, url=url, settings=settings)
                     )
 
     return list(sorted(all_tests, key=lambda p: p.url))

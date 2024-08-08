@@ -97,7 +97,7 @@ def get_published(product: str, packages: list[str]) -> dict[str, RPMVersion]:
     Get published RPM versions for packages in product
     """
     published = {}
-    with ThreadPoolExecutor(max_workers=min(10, len(packages))) as executor:
+    with ThreadPoolExecutor(max_workers=len(packages)) as executor:
         for package, rpm_version in zip(
             packages, executor.map(lambda p: fetch_version(product, p), packages)
         ):

@@ -15,7 +15,7 @@ def main_list(args: argparse.Namespace) -> None:
     """
     _ = args
 
-    with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
+    with ThreadPoolExecutor(max_workers=len(REPOS)) as executor:
         for tests in executor.map(get_tests, REPOS):
             for test in tests:
                 print(f"{test.product}\t{test.url}")

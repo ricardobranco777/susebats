@@ -25,7 +25,7 @@ def main_all(args: argparse.Namespace) -> None:
     _ = args
 
     tests = []
-    with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
+    with ThreadPoolExecutor(max_workers=len(REPOS)) as executor:
         for results in executor.map(get_tests, REPOS):
             tests.extend(results)
 
@@ -33,7 +33,7 @@ def main_all(args: argparse.Namespace) -> None:
     build = date.strftime("%Y%m%d")
 
     items: list[dict[str, dict]] = []
-    with ThreadPoolExecutor(max_workers=min(10, len(tests))) as executor:
+    with ThreadPoolExecutor(max_workers=len(tests)) as executor:
         for test, job in zip(
             tests,
             executor.map(
@@ -66,7 +66,7 @@ def get_logs(job: Job) -> dict[str, dict[str, list[str]]]:
     logs: dict[str, dict[str, list[str]]] = defaultdict(dict)
     versions = get_versions(job.results)
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
-        with ThreadPoolExecutor(max_workers=min(10, len(job.logs))) as executor:
+        with ThreadPoolExecutor(max_workers=len(job.logs)) as executor:
             for file_url, file in zip(job.logs, executor.map(download_file, job.logs)):
                 if file is None:
                     continue

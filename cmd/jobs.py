@@ -15,7 +15,7 @@ def main_jobs(args: argparse.Namespace) -> None:
     Main function
     """
     urls = []
-    with ThreadPoolExecutor(max_workers=min(10, len(REPOS))) as executor:
+    with ThreadPoolExecutor(max_workers=len(REPOS)) as executor:
         for results in executor.map(get_urls, REPOS):
             urls.extend(results)
 
@@ -25,7 +25,7 @@ def main_jobs(args: argparse.Namespace) -> None:
         date = today - timedelta(days=int(build[1:]))
         build = date.strftime("%Y%m%d")
 
-    with ThreadPoolExecutor(max_workers=min(10, len(urls))) as executor:
+    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
             lambda u: get_job(u, full=args.verbose, build=get_build(u, build)), urls
         ):

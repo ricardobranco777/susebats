@@ -7,7 +7,7 @@ from functools import cache
 
 from requests.exceptions import RequestException
 
-from bats.session import session, TIMEOUT
+from bats.requests import session, TIMEOUT
 from bats.rpmversion import RPMVersion
 
 

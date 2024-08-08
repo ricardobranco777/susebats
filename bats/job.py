@@ -9,7 +9,7 @@ from urllib.parse import parse_qs, urljoin, urlparse
 
 from requests.exceptions import RequestException
 
-from bats.session import session, TIMEOUT
+from bats.requests import session, TIMEOUT
 
 
 @dataclass(frozen=True)

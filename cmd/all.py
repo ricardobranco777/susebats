@@ -13,7 +13,8 @@ from dataclasses import asdict, fields
 
 from bats.job import get_job, Job
 from bats.repos import REPOS, get_build, get_tests
-from bats.tap import download_file, grep_notok
+from bats.requests import download_file
+from bats.tap import grep_notok
 from bats.versions import get_versions, TEST_URL
 
 

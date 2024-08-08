@@ -17,13 +17,6 @@ from bats.tap import download_file, grep_notok
 from bats.versions import get_versions, TEST_URL
 
 
-def nested_defaultdict():
-    """
-    Helper function to create a defaultdict of defaultdicts
-    """
-    return defaultdict(nested_defaultdict)
-
-
 def main_all(args: argparse.Namespace) -> None:
     """
     Main function
@@ -38,7 +31,7 @@ def main_all(args: argparse.Namespace) -> None:
     date = datetime.now().date() - timedelta(days=1)
     build = date.strftime("%Y%m%d")
 
-    items: dict[str, dict] = nested_defaultdict()
+    items: list[dict[str, dict]] = []
     with ThreadPoolExecutor(max_workers=min(10, len(tests))) as executor:
         for test, job in zip(
             tests,
@@ -55,15 +48,14 @@ def main_all(args: argparse.Namespace) -> None:
                 if field.name not in {"results"}
             }
             info["logs"] = get_logs(job)
-            arch = job.settings["ARCH"]
-            distri = job.settings["DISTRI"]
-            version = job.settings["VERSION"]
-            items[distri][version][arch][test.name] = {
-                "test": asdict(test),
-                "job": info,
-            }
+            items.append(
+                {
+                    "job": info,
+                    "test": asdict(test),
+                }
+            )
 
-    print(json.dumps(items, default=str, sort_keys=True))
+    print(json.dumps(items))
 
 
 def get_logs(job: Job) -> dict[str, dict[str, list[str]]]:

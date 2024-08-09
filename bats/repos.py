@@ -124,13 +124,13 @@ def get_urls(repo: str) -> list[str]:
     return [test.url for test in get_tests(repo)]
 
 
-def get_build(url: str, build: str | None) -> str | None:
+def build_url(url: str, build: str | None) -> str:
     """
-    Normalize build
+    Append build to url
     """
     if not build:
-        return None
+        return url
     # Append "-1" to aggregate tests in o.s.d
     if "openqa.suse.de" in url and build.isdigit():
-        return f"{build}-1"
-    return build
+        build = f"{build}-1"
+    return f"{url}&build={build}"

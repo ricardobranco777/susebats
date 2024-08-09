@@ -48,7 +48,7 @@ def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | No
     return data[0]["id"]
 
 
-def get_job(url: str, full: bool = False, build: str | None = None) -> Job | None:
+def get_job(url: str, full: bool = False) -> Job | None:
     """
     Get a job
     """
@@ -57,8 +57,6 @@ def get_job(url: str, full: bool = False, build: str | None = None) -> Job | Non
     urlx = urlparse(url)
 
     params: dict[str, list[str]] = parse_qs(urlx.query)
-    if build:
-        params["build"] = [build]
 
     job_id = get_job_id(url, params=params)
     if job_id is None:
@@ -73,9 +71,6 @@ def get_job(url: str, full: bool = False, build: str | None = None) -> Job | Non
         info = got.json()["job"]
     except RequestException as error:
         print(f"ERROR: {api_url}: {error}", file=sys.stderr)
-        return None
-
-    if build and info["settings"]["BUILD"] != build:
         return None
 
     url = f"{urlx.scheme}://{urlx.netloc}/tests/{job_id}"

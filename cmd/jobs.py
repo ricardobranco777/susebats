@@ -6,7 +6,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
-from bats.repos import REPOS, get_build, get_urls
+from bats.repos import REPOS, build_url, get_urls
 from bats.job import get_job, Job
 
 
@@ -27,9 +27,9 @@ def main_jobs(args: argparse.Namespace) -> None:
 
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
-            lambda u: get_job(u, full=args.verbose, build=get_build(u, build)), urls
+            lambda u: get_job(build_url(u, build), full=args.verbose), urls
         ):
-            if job is None:
+            if job is None or build and not job.settings["BUILD"].startswith(build):
                 continue
             print_job(job)
 

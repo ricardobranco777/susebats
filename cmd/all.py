@@ -12,7 +12,7 @@ from datetime import datetime, timedelta
 from dataclasses import asdict, fields
 
 from bats.job import get_job, Job
-from bats.repos import REPOS, get_build, get_tests
+from bats.repos import REPOS, build_url, get_tests
 from bats.requests import download_file
 from bats.tap import grep_notok
 from bats.versions import get_versions, TEST_URL
@@ -37,11 +37,13 @@ def main_all(args: argparse.Namespace) -> None:
         for test, job in zip(
             tests,
             executor.map(
-                lambda p: get_job(p.url, full=True, build=get_build(p.url, build)),
+                lambda p: get_job(build_url(p.url, build), full=True),
                 tests,
             ),
         ):
-            if job is None or job.result not in {"passed", "failed"}:
+            if job is None or build and build != job.settings["BUILD"] != build:
+                continue
+            if job.result not in {"passed", "failed"}:
                 continue
             info = {
                 field.name: getattr(job, field.name)

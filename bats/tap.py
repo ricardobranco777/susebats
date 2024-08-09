@@ -30,8 +30,9 @@ def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
             test = ""
             buffer = []
         else:
-            if "in test file" in line:
-                filename = re.findall(r"/(.*?\.bats)", line)[0]
+            matches = re.findall(r"in test file .*/(.*?\.bats)", line)
+            if matches:
+                filename = matches.pop()
                 test = os.path.basename(filename.removesuffix(".bats"))
             buffer.append(line)
     if test and buffer:

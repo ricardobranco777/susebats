@@ -14,12 +14,12 @@ GIT_VERSION = re.compile(rf"{PACKAGES} version$")
 RPM_VERSION = re.compile(rf"{PACKAGES} package version$")
 
 TEST_URL = {
-    "aardvark-dns": "https://github.com/containers/aardvark-dns/tree/{}/test/{}.bats",
-    "buildah": "https://github.com/containers/buildah/tree/{}/tests/{}.bats",
-    "netavark": "https://github.com/containers/netavark/tree/{}/test/{}.bats",
-    "podman": "https://github.com/containers/podman/tree/{}/test/system/{}.bats",
-    "runc": "https://github.com/opencontainers/runc/tree/{}/tests/integration/{}.bats",
-    "skopeo": "https://github.com/containers/skopeo/tree/{}/systemtest/{}.bats",
+    "aardvark-dns": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
+    "buildah": "https://github.com/containers/buildah/blob/v{}/tests/{}.bats",
+    "netavark": "https://github.com/containers/netavark/blob/v{}/test/{}.bats",
+    "podman": "https://github.com/containers/podman/blob/v{}/test/system/{}.bats",
+    "runc": "https://github.com/opencontainers/runc/blob/v{}/tests/integration/{}.bats",
+    "skopeo": "https://github.com/containers/skopeo/blob/v{}/systemtest/{}.bats",
 }
 
 

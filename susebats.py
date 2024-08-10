@@ -15,7 +15,7 @@ from cmd.versions import main_versions
 from bats.versions import TEST_URL
 
 
-VERSION = "0.5.0"
+VERSION = "0.6.0"
 
 
 def main() -> None:

@@ -10,7 +10,9 @@ from cmd.all import main_all
 from cmd.jobs import main_jobs
 from cmd.list import main_list
 from cmd.notok import main_notok
+from cmd.tests import main_tests
 from cmd.versions import main_versions
+from bats.versions import TEST_URL
 
 
 VERSION = "0.5.0"
@@ -56,7 +58,7 @@ def main() -> None:
 
     parser_notok = subparsers.add_parser(
         "notok",
-        help="Generate BATS_SKIP variables from an openQA job URL",
+        help="generate BATS_SKIP variables from an openQA job URL",
     )
     parser_notok.add_argument(
         "-d", "--diff", action="store_true", help="show diff of settings"
@@ -66,6 +68,17 @@ def main() -> None:
     )
     parser_notok.add_argument("url", help="openQA job")
     parser_notok.set_defaults(func=main_notok)
+
+    parser_tests = subparsers.add_parser(
+        "tests",
+        help="list BATS tests for package and tag",
+    )
+    parser_tests.set_defaults(func=main_tests)
+    parser_tests.add_argument("-v", "--verbose", action="store_true")
+    parser_tests.add_argument("package", choices=list(TEST_URL.keys()))
+    parser_tests.add_argument(
+        "version", default="main", nargs="?", help="git tag (default: main)"
+    )
 
     parser_versions = subparsers.add_parser(
         "versions",

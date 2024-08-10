@@ -7,14 +7,15 @@ Display information on BATS tests in openQA
 Docker image available at `ghcr.io/ricardobranco777/susebats:latest`
 
 ```
-usage: susebats [-h] [--version] {all,jobs,list,notok,versions} ...
+usage: susebats [-h] [--version] {all,jobs,list,notok,tests,versions} ...
 
 positional arguments:
-  {all,jobs,list,notok,versions}
+  {all,jobs,list,notok,tests,versions}
     all                 dump all as json
     jobs                list BATS jobs in o.s.d & o3
     list                list skipped BATS tests per product
-    notok               Generate BATS_SKIP variables from an openQA job URL
+    notok               generate BATS_SKIP variables from an openQA job URL
+    tests               list BATS tests for package and tag
     versions            print versions of BATS tested packages in openQA job
 
 options:
@@ -124,6 +125,20 @@ RUNC_BATS_SKIP_USER='run userns'
 SKOPEO_BATS_SKIP='none'
 SKOPEO_BATS_SKIP_ROOT='none'
 SKOPEO_BATS_SKIP_USER='none'
+```
+
+## susebats tests
+
+```
+usage: susebats tests [-h] [-v] {aardvark-dns,buildah,netavark,podman,runc,skopeo} [version]
+
+positional arguments:
+  {aardvark-dns,buildah,netavark,podman,runc,skopeo}
+  version               git tag (default: main)
+
+options:
+  -h, --help            show this help message and exit
+  -v, --verbose
 ```
 
 ## susebats versions

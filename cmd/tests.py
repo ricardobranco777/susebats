@@ -18,12 +18,21 @@ def main_tests(args: argparse.Namespace) -> None:
     Main function
     """
 
+    repo_regex = r"^https://github.com/(.*)/blob/v{}/(.*)/{}\.bats$"
+    repo, test_dir = re.findall(repo_regex, TEST_URL[args.package])[0]
+
     tag = args.version
     if tag[0].isdigit() and not tag.startswith("v"):
         tag = f"v{tag}"
+    elif tag == "latest":
+        api_url = f"https://api.github.com/repos/{repo}/tags"
+        try:
+            got = session.get(api_url, timeout=TIMEOUT)
+            data = got.json()
+        except RequestException as err:
+            sys.exit(f"ERROR: {args.package} {tag}: {err}")
+        tag = data[0]["name"]
 
-    repo_regex = r"^https://github.com/(.*)/blob/v{}/(.*)/{}\.bats$"
-    repo, test_dir = re.findall(repo_regex, TEST_URL[args.package])[0]
     api_url = f"https://api.github.com/repos/{repo}/contents/{test_dir}"
     params = {"ref": tag}
 

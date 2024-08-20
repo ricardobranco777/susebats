@@ -134,7 +134,7 @@ usage: susebats tests [-h] [-v] {aardvark-dns,buildah,netavark,podman,runc,skope
 
 positional arguments:
   {aardvark-dns,buildah,netavark,podman,runc,skopeo}
-  version               git tag (default: main)
+  version               git tag (default: latest)
 
 options:
   -h, --help            show this help message and exit

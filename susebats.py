@@ -77,7 +77,7 @@ def main() -> None:
     parser_tests.add_argument("-v", "--verbose", action="store_true")
     parser_tests.add_argument("package", choices=list(TEST_URL.keys()))
     parser_tests.add_argument(
-        "version", default="main", nargs="?", help="git tag (default: main)"
+        "version", default="latest", nargs="?", help="git tag (default: latest)"
     )
 
     parser_versions = subparsers.add_parser(

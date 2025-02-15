@@ -90,7 +90,7 @@ def print_settings(job: Job, tap_files: list[str], diff: bool = False) -> None:
         info = process_files(list(files))
         for key, value in info.items():
             if diff and job.settings.get(key) != value:
-                print(f"-{key}='{job.settings[key]}'")
-                print(f"+{key}='{value}'")
+                print(f"-{key}: '{job.settings[key]}'")
+                print(f"+{key}: '{value}'")
             else:
-                print(f"{key}='{value}'")
+                print(f"{key}: '{value}'")

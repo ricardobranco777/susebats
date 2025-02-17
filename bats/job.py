@@ -86,14 +86,14 @@ def get_tagurl(tag: str) -> str:
 
     url = ""
     if host.startswith("bugzilla"):
-        url = f"bugzilla.suse.com/show_bug.cgi?id={issue}"
+        url = f"{host}/show_bug.cgi?id={issue}"
     elif host == "progress.opensuse.org":
-        url = "progress.opensuse.org/issues/{issue}"
+        url = f"{host}/issues/{issue}"
     elif host.endswith("github.com"):
         if "!" in issue:
-            url = f"github.com/{repo}/issues/{issue}"
+            url = f"{host}/{repo}/issues/{issue}"
         else:
-            url = f"github.com/{repo}/pull/{issue}"
+            url = f"{host}/{repo}/pull/{issue}"
     else:
         return tag
 

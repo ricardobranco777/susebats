@@ -5,6 +5,7 @@ Job module
 import os
 import sys
 from dataclasses import dataclass
+from datetime import datetime
 from urllib.parse import parse_qs, urljoin, urlparse
 
 from requests.exceptions import RequestException
@@ -13,11 +14,25 @@ from bats.requests import session, TIMEOUT
 
 
 @dataclass(frozen=True)
+class Comment:
+    """
+    Comment class
+    """
+
+    author: str
+    bugref: str
+    created: datetime
+    text: str
+    updated: datetime
+
+
+@dataclass(frozen=True)
 class Job:
     """
     Job class
     """
 
+    comments: list[Comment]
     name: str
     logs: list[str]
     result: str
@@ -80,7 +95,29 @@ def get_job(url: str, full: bool = False) -> Job | None:
         if log.endswith(".tap")
     ]
 
+    comments: list[Comment] = []
+    if full and info["result"] == "failed":
+        api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}/comments"
+        try:
+            got = session.get(api_url, timeout=TIMEOUT)
+            got.raise_for_status()
+            data = got.json()
+        except RequestException as error:
+            print(f"ERROR: {api_url}: {error}", file=sys.stderr)
+        comments = [
+            Comment(
+                author=item["userName"],
+                bugref=item["bugrefs"][0],
+                created=datetime.fromisoformat(item["created"]),
+                text=item["text"].replace("\n", " ").strip(),
+                updated=datetime.fromisoformat(item["updated"]),
+            )
+            for item in data
+            if item["bugrefs"]
+        ]
+
     return Job(
+        comments=comments,
         logs=logs,
         name=info["name"],
         result=info["result"] if info["result"] != "none" else info["state"],

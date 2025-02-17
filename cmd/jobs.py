@@ -53,3 +53,5 @@ def print_job(job: Job) -> None:
                 # Skip non-failed sub-tests
                 if test["result"] == "fail":
                     print(f"\t{result['name']:<30}  {test['text_data']}")
+    for comment in job.comments:
+        print("=>", comment.updated.ctime(), comment.bugref, "by", comment.author)

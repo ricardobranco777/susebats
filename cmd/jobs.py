@@ -34,41 +34,6 @@ def main_jobs(args: argparse.Namespace) -> None:
             print_job(job)
 
 
-def get_tagurl(tag: str) -> str:
-    """
-    Get URL from tag
-    """
-    tag_to_host = {
-        "bsc": "bugzilla.suse.com",
-        "boo": "bugzilla.opensuse.org",
-        "gh": "github.com",
-        "poo": "progress.opensuse.org",
-    }
-
-    prefix, suffix = tag.split("#", 1)
-    host = tag_to_host.get(prefix)
-    if host is None:
-        return tag
-
-    url = ""
-    if host.startswith("bugzilla"):
-        url = f"bugzilla.suse.com/show_bug.cgi?id={suffix}"
-    elif host == "progress.opensuse.org":
-        url = "progress.opensuse.org/issues/{suffix}"
-    elif host.endswith("github.com"):
-        repo = id_ = ""
-        if "#" in suffix:
-            repo, id_ = suffix.split("#", 1)
-            url = f"github.com/{repo}/issues/{id_}"
-        else:
-            repo, id_ = suffix.split("!", 1)
-            url = f"github.com/{repo}/pull/{id_}"
-    else:
-        return tag
-
-    return f"https://{url}"
-
-
 def print_job(job: Job) -> None:
     """
     Print job
@@ -94,7 +59,6 @@ def print_job(job: Job) -> None:
         ):
             continue
         for bugref in comment.bugrefs:
-            bugref = get_tagurl(bugref)
             print("=>", comment.updated.ctime(), bugref, "by", comment.author)
         if len(comment.bugrefs) == 0:
             print("=>", comment.updated.ctime(), comment.text, "by", comment.author)

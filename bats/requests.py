@@ -17,7 +17,7 @@ except ImportError:
 
 session = requests.Session()
 
-TIMEOUT = 30
+TIMEOUT = 60
 
 
 def debugme(got, *args, **kwargs):  # pylint: disable=unused-argument

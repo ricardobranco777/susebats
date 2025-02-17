@@ -108,9 +108,9 @@ def get_job(url: str, full: bool = False) -> Job | None:
             Comment(
                 author=item["userName"],
                 bugref=item["bugrefs"][0],
-                created=datetime.fromisoformat(item["created"]),
+                created=datetime.fromisoformat(item["created"]).astimezone(),
                 text=item["text"].replace("\n", " ").strip(),
-                updated=datetime.fromisoformat(item["updated"]),
+                updated=datetime.fromisoformat(item["updated"]).astimezone(),
             )
             for item in data
             if item["bugrefs"]

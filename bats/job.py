@@ -3,6 +3,7 @@ Job module
 """
 
 import os
+import re
 import sys
 from dataclasses import dataclass
 from datetime import datetime
@@ -74,24 +75,25 @@ def get_tagurl(tag: str) -> str:
         "poo": "progress.opensuse.org",
     }
 
-    prefix, suffix = tag.split("#", 1)
-    host = tag_to_host.get(prefix)
+    repo = ""
+    try:
+        code, repo, issue = re.split(r"[#!]", tag)
+    except ValueError:
+        code, issue = tag.split("#", 1)
+    host = tag_to_host.get(code)
     if host is None:
         return tag
 
     url = ""
     if host.startswith("bugzilla"):
-        url = f"bugzilla.suse.com/show_bug.cgi?id={suffix}"
+        url = f"bugzilla.suse.com/show_bug.cgi?id={issue}"
     elif host == "progress.opensuse.org":
-        url = "progress.opensuse.org/issues/{suffix}"
+        url = "progress.opensuse.org/issues/{issue}"
     elif host.endswith("github.com"):
-        repo = id_ = ""
-        if "#" in suffix:
-            repo, id_ = suffix.split("#", 1)
-            url = f"github.com/{repo}/issues/{id_}"
+        if "!" in issue:
+            url = f"github.com/{repo}/issues/{issue}"
         else:
-            repo, id_ = suffix.split("!", 1)
-            url = f"github.com/{repo}/pull/{id_}"
+            url = f"github.com/{repo}/pull/{issue}"
     else:
         return tag
 

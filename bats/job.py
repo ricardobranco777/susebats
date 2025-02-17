@@ -3,15 +3,12 @@ Job module
 """
 
 import os
-import re
-import sys
 from dataclasses import dataclass
 from datetime import datetime
 from urllib.parse import parse_qs, urljoin, urlparse
 
-from requests.exceptions import RequestException
-
-from bats.requests import session, TIMEOUT
+from bats.requests import get_json
+from bats.services import get_tagurl, Issue
 
 
 @dataclass(frozen=True)
@@ -21,7 +18,7 @@ class Comment:
     """
 
     author: str
-    bugrefs: list[str]
+    bugrefs: list[Issue]
     created: datetime
     text: str
     updated: datetime
@@ -51,53 +48,13 @@ def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | No
         return int(os.path.basename(urlx.path).removeprefix("t"))
 
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/overview"
-    try:
-        got = session.get(api_url, params=params, timeout=TIMEOUT)
-        got.raise_for_status()
-        data = got.json()
-    except RequestException as error:
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+    data = get_json(api_url, params=params)
+    if data is None:
         return None
     if len(data) != 1:
         return None
 
     return data[0]["id"]
-
-
-def get_tagurl(tag: str) -> str:
-    """
-    Get URL from tag
-    """
-    tag_to_host = {
-        "bsc": "bugzilla.suse.com",
-        "boo": "bugzilla.opensuse.org",
-        "gh": "github.com",
-        "poo": "progress.opensuse.org",
-    }
-
-    repo = ""
-    try:
-        code, repo, issue = re.split(r"[#!]", tag)
-    except ValueError:
-        code, issue = tag.split("#", 1)
-    host = tag_to_host.get(code)
-    if host is None:
-        return tag
-
-    url = ""
-    if host.startswith("bugzilla"):
-        url = f"{host}/show_bug.cgi?id={issue}"
-    elif host == "progress.opensuse.org":
-        url = f"{host}/issues/{issue}"
-    elif host.endswith("github.com"):
-        if "!" in issue:
-            url = f"{host}/{repo}/issues/{issue}"
-        else:
-            url = f"{host}/{repo}/pull/{issue}"
-    else:
-        return tag
-
-    return f"https://{url}"
 
 
 def get_job(url: str, full: bool = False) -> Job | None:
@@ -117,13 +74,10 @@ def get_job(url: str, full: bool = False) -> Job | None:
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}"
     if full:
         api_url = f"{api_url}/details"
-    try:
-        got = session.get(api_url, timeout=TIMEOUT)
-        got.raise_for_status()
-        info = got.json()["job"]
-    except RequestException as error:
-        print(f"ERROR: {api_url}: {error}", file=sys.stderr)
+    info = get_json(api_url, key="job")
+    if info is None:
         return None
+    assert isinstance(info, dict)
 
     url = f"{urlx.scheme}://{urlx.netloc}/tests/{job_id}"
     logs = [
@@ -135,22 +89,20 @@ def get_job(url: str, full: bool = False) -> Job | None:
     comments: list[Comment] = []
     if full and info["result"] == "failed":
         api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}/comments"
-        try:
-            got = session.get(api_url, timeout=TIMEOUT)
-            got.raise_for_status()
-            data = got.json()
-        except RequestException as error:
-            print(f"ERROR: {api_url}: {error}", file=sys.stderr)
-        comments = [
-            Comment(
-                author=item["userName"],
-                bugrefs=[get_tagurl(b) for b in item["bugrefs"]],
-                created=datetime.fromisoformat(item["created"]).astimezone(),
-                text=item["text"].replace("\r", "").replace("\n", " ").strip(),
-                updated=datetime.fromisoformat(item["updated"]).astimezone(),
-            )
-            for item in data
-        ]
+        data = get_json(api_url)
+        if data is not None:
+            comments = [
+                Comment(
+                    author=item["userName"],
+                    bugrefs=list(
+                        filter(None, (get_tagurl(b) for b in item["bugrefs"]))
+                    ),
+                    created=datetime.fromisoformat(item["created"]).astimezone(),
+                    text=item["text"].replace("\r", "").replace("\n", " ").strip(),
+                    updated=datetime.fromisoformat(item["updated"]).astimezone(),
+                )
+                for item in data
+            ]
 
     return Job(
         comments=comments,

@@ -5,37 +5,22 @@ SUSE module
 import re
 from functools import cache
 
-from requests.exceptions import RequestException
-
-from bats.requests import session, TIMEOUT
+from bats.requests import get_json
 from bats.rpmversion import RPMVersion
 
 
-def get_data(
-    url: str,
-    headers: dict[str, str] | None = None,
-    params: dict[str, str | int] | None = None,
-) -> list[dict]:
-    """
-    Get data from URL
-    """
-    try:
-        got = session.get(url, headers=headers, params=params, timeout=TIMEOUT)
-        got.raise_for_status()
-    except RequestException as error:
-        print(f"ERROR: {url}: {error}")
-        raise
-    return got.json()["data"]
-
-
 @cache
-def get_products() -> list[dict]:
+def get_products() -> list[dict] | None:
     """
     Get products
     """
     url = "https://scc.suse.com/api/package_search/products"
     headers = {"Accept": "application/vnd.scc.suse.com.v4+json"}
-    return get_data(url, headers=headers)
+    products = get_json(url, headers=headers, key="data")
+    if products is None:
+        return None
+    assert isinstance(products, list)
+    return products
 
 
 # Cache the product list
@@ -56,7 +41,9 @@ def fetch_version(product: str, package: str) -> RPMVersion | None:
         "query": package,
         "product_id": product_id,
     }
-    data = get_data(url, headers=headers, params=params)
+    data = get_json(url, headers=headers, params=params, key="data")
+    if data is None:
+        return None
 
     regex = re.compile(rf"{package}$")
     latest: dict[str, RPMVersion] = {}
@@ -100,7 +87,10 @@ def get_product_id(product: str) -> int | None:
     identifier = get_product_identifier(product)
     if identifier is None:
         return None
-    for suseproduct in get_products():
+    products = get_products()
+    if products is None:
+        return None
+    for suseproduct in products:
         if suseproduct["identifier"] == identifier:
             return suseproduct["id"]
     return None

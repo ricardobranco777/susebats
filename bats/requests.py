@@ -47,6 +47,27 @@ def download_file(url: str) -> str | None:
     return filename
 
 
+def get_json(
+    url: str,
+    headers: dict | None = None,
+    params: dict | None = None,
+    key: str | None = None,
+) -> dict | list[dict] | None:
+    """
+    Get JSON
+    """
+    try:
+        got = session.get(url, headers=headers, params=params, timeout=TIMEOUT)
+        got.raise_for_status()
+        data = got.json()
+    except RequestException as error:
+        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        return None
+    if key is not None:
+        return data[key]
+    return data
+
+
 if os.getenv("DEBUG"):
     session.hooks["response"].append(debugme)
 atexit.register(session.close)

@@ -54,4 +54,9 @@ def print_job(job: Job) -> None:
                 if test["result"] == "fail":
                     print(f"\t{result['name']:<30}  {test['text_data']}")
     for comment in job.comments:
-        print("=>", comment.updated.ctime(), comment.bugref, "by", comment.author)
+        if comment.text.startswith(
+            ("Automatic investigation jobs", "Investigate retry job")
+        ):
+            continue
+        info = "|".join(comment.bugrefs) if comment.bugrefs else comment.text
+        print("=>", comment.updated.ctime(), info, "by", comment.author)

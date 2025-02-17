@@ -20,7 +20,7 @@ class Comment:
     """
 
     author: str
-    bugref: str
+    bugrefs: list[str]
     created: datetime
     text: str
     updated: datetime
@@ -107,13 +107,12 @@ def get_job(url: str, full: bool = False) -> Job | None:
         comments = [
             Comment(
                 author=item["userName"],
-                bugref=item["bugrefs"][0],
+                bugrefs=item["bugrefs"],
                 created=datetime.fromisoformat(item["created"]).astimezone(),
-                text=item["text"].replace("\n", " ").strip(),
+                text=item["text"].replace("\r", "").replace("\n", " ").strip(),
                 updated=datetime.fromisoformat(item["updated"]).astimezone(),
             )
             for item in data
-            if item["bugrefs"]
         ]
 
     return Job(

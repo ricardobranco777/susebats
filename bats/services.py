@@ -3,7 +3,6 @@ Services module
 """
 
 import os
-import re
 import sys
 from dataclasses import dataclass
 from urllib.parse import urljoin
@@ -100,7 +99,7 @@ def get_tagurl(tag: str) -> Issue | None:
 
     repo = ""
     try:
-        code, repo, issue = re.split(r"[#!]", tag)
+        code, repo, issue = tag.split("#", 2)
     except ValueError:
         code, issue = tag.split("#", 1)
     host = tag_to_host.get(code)

@@ -7,9 +7,7 @@ import argparse
 import re
 import sys
 
-from requests.exceptions import RequestException
-
-from bats.requests import session, TIMEOUT
+from bats.requests import get_json
 from bats.versions import TEST_URL
 
 
@@ -26,21 +24,16 @@ def main_tests(args: argparse.Namespace) -> None:
         tag = f"v{tag}"
     elif tag == "latest":
         api_url = f"https://api.github.com/repos/{repo}/tags"
-        try:
-            got = session.get(api_url, timeout=TIMEOUT)
-            data = got.json()
-        except RequestException as err:
-            sys.exit(f"ERROR: {args.package} {tag}: {err}")
+        data = get_json(api_url)
+        if data is None:
+            sys.exit(f"ERROR: {args.package} {tag}")
         tag = data[0]["name"]
 
     api_url = f"https://api.github.com/repos/{repo}/contents/{test_dir}"
     params = {"ref": tag}
-
-    try:
-        got = session.get(api_url, params=params, timeout=TIMEOUT)
-        data = got.json()
-    except RequestException as err:
-        sys.exit(f"ERROR: {args.package} {tag}: {err}")
+    data = get_json(api_url, params=params)
+    if data is None:
+        sys.exit(f"ERROR: {args.package} {tag}")
 
     for item in data:
         if not item["name"].endswith(".bats"):

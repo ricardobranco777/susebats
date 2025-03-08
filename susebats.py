@@ -10,9 +10,7 @@ from cmd.all import main_all
 from cmd.jobs import main_jobs
 from cmd.list import main_list
 from cmd.notok import main_notok
-from cmd.tests import main_tests
 from cmd.versions import main_versions
-from bats.versions import TEST_URL
 
 
 VERSION = "0.7.0"

@@ -7,15 +7,14 @@ Display information on BATS tests in openQA
 Docker image available at `ghcr.io/ricardobranco777/susebats:latest`
 
 ```
-usage: susebats [-h] [--version] {all,jobs,list,notok,tests,versions} ...
+usage: susebats [-h] [--version] {all,jobs,list,notok,versions} ...
 
 positional arguments:
-  {all,jobs,list,notok,tests,versions}
+  {all,jobs,list,notok,versions}
     all                 dump all as json
     jobs                list BATS jobs in o.s.d & o3
     list                list skipped BATS tests per product
     notok               generate BATS_SKIP variables from an openQA job URL
-    tests               list BATS tests for package and tag
     versions            print versions of BATS tested packages in openQA job
 
 options:
@@ -41,7 +40,7 @@ Example output:
 
 ```
 # Show jobs from yesterday
-$ susebats -b -1
+$ susebats jobs -b -1
 passed      https://openqa.opensuse.org/tests/4362949   opensuse-Tumbleweed-DVD-x86_64-Build20240728-containers_host_podman_testsuite@64bit
 passed      https://openqa.opensuse.org/tests/4362870   opensuse-Tumbleweed-DVD-x86_64-Build20240728-containers_host_buildah_testsuite@64bit
 passed      https://openqa.opensuse.org/tests/4364135   opensuse-Tumbleweed-DVD-aarch64-Build20240728-containers_host_podman_testsuite@aarch64
@@ -125,20 +124,6 @@ RUNC_BATS_SKIP_USER='run userns'
 SKOPEO_BATS_SKIP='none'
 SKOPEO_BATS_SKIP_ROOT='none'
 SKOPEO_BATS_SKIP_USER='none'
-```
-
-## susebats tests
-
-```
-usage: susebats tests [-h] [-v] {aardvark-dns,buildah,netavark,podman,runc,skopeo} [version]
-
-positional arguments:
-  {aardvark-dns,buildah,netavark,podman,runc,skopeo}
-  version               git tag (default: latest)
-
-options:
-  -h, --help            show this help message and exit
-  -v, --verbose
 ```
 
 ## susebats versions

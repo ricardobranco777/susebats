@@ -69,17 +69,6 @@ def main() -> None:
     parser_notok.add_argument("url", help="openQA job")
     parser_notok.set_defaults(func=main_notok)
 
-    parser_tests = subparsers.add_parser(
-        "tests",
-        help="list BATS tests for package and tag",
-    )
-    parser_tests.set_defaults(func=main_tests)
-    parser_tests.add_argument("-v", "--verbose", action="store_true")
-    parser_tests.add_argument("package", choices=list(TEST_URL.keys()))
-    parser_tests.add_argument(
-        "version", default="latest", nargs="?", help="git tag (default: latest)"
-    )
-
     parser_versions = subparsers.add_parser(
         "versions",
         help="print versions of BATS tested packages in openQA job",

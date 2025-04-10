@@ -35,7 +35,7 @@ def process_files(files: list[str]) -> dict[str, str]:
     if len(files) > 1:
         for file in files:
             found[file] -= skip_common
-    package = files[0].split("_")[0].upper() + "_BATS_SKIP"
+    package = files[0].replace("_integration", "").split("-")[0].upper() + "_BATS_SKIP"
     info[package] = " ".join(sorted(skip_common)) or "none"
     if len(files) > 1:
         for file in files:
@@ -88,8 +88,8 @@ def print_settings(job: Job, tap_files: list[str], diff: bool = False) -> None:
     Print job settings
     """
     # Group multiple .tap files by their prefixes:
-    # (podman|buildah|etc)_integration_.*.tap
-    for _, files in groupby(tap_files, key=lambda s: s.split("_integration")[0]):
+    # (podman|buildah|etc)-*.tap
+    for _, files in groupby(tap_files, key=lambda s: s.split("-")[0]):
         info = process_files(list(files))
         for key, value in info.items():
             if diff and job.settings.get(key) != value:

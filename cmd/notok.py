@@ -18,7 +18,7 @@ from bats.tap import grep_notok
 from bats.versions import get_versions, TEST_URL
 
 
-TAP_REGEX = r"-((?:root|user)(?:-(?:local|remote))?)\.tap$"
+TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.tap$"
 
 
 def process_files(files: list[str]) -> dict[str, str]:
@@ -35,12 +35,11 @@ def process_files(files: list[str]) -> dict[str, str]:
     if len(files) > 1:
         for file in files:
             found[file] -= skip_common
-    package = files[0].replace("_integration", "").split("-")[0].upper() + "_BATS_SKIP"
-    info[package] = " ".join(sorted(skip_common)) or "none"
+    info["BATS_SKIP"] = " ".join(sorted(skip_common)) or "none"
     if len(files) > 1:
         for file in files:
-            skip = re.findall(TAP_REGEX, file)[0].replace("-", "_").upper()
-            info[f"{package}_{skip}"] = " ".join(sorted(found[file])) or "none"
+            skip = re.findall(TAP_REGEX, file)[0].upper()
+            info[f"BATS_SKIP_{skip}"] = " ".join(sorted(found[file])) or "none"
     return info
 
 

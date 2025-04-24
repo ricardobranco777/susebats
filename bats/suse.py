@@ -27,23 +27,50 @@ def get_products() -> list[dict] | None:
 _ = get_products()
 
 
+def opensuse_package_info(info: dict) -> dict:
+    """
+    Get openSUSE package info
+    """
+    # Extract version & release from rpm filename
+    version, release = info["file"].rsplit(".", 2)[0].rsplit("-", 2)[1:]
+    return {
+        "name": info["name"],
+        "version": version,
+        "release": release,
+    }
+
+
 def fetch_version(product: str, package: str) -> RPMVersion | None:
     """
     Fetch latest package version for the specified product
     """
-    product_id = get_product_id(product)
-    if product_id is None:
-        return None
+    if product.startswith("opensuse"):
+        url = "https://mirrorcache.opensuse.org/rest/search/package_locations"
+        headers = {"Accept": "application/json"}
+        params = {
+            "ignore_file": "json",
+            "ignore_path": "/repositories/home:",
+            "os": "tumbleweed",
+            "official": 1,
+            "package": package,
+        }
+    else:
+        product_id = get_product_id(product)
+        if product_id is None:
+            return None
 
-    url = "https://scc.suse.com/api/package_search/packages"
-    headers = {"Accept": "application/vnd.scc.suse.com.v4+json"}
-    params: dict[str, str | int] = {
-        "query": package,
-        "product_id": product_id,
-    }
+        url = "https://scc.suse.com/api/package_search/packages"
+        headers = {"Accept": "application/vnd.scc.suse.com.v4+json"}
+        params = {
+            "query": package,
+            "product_id": product_id,
+        }
+
     data = get_json(url, headers=headers, params=params, key="data")
     if data is None:
         return None
+    if product.startswith("opensuse"):
+        data = [opensuse_package_info(p) for p in data]
 
     regex = re.compile(rf"{package}$")
     latest: dict[str, RPMVersion] = {}

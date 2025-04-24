@@ -59,7 +59,7 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
                     settings = {
                         setting: scenario[test]["settings"][setting].split()
                         for setting in sorted(scenario[test]["settings"])
-                        if "BATS_SKIP" in setting
+                        if "BATS_" in setting
                     }
                     if not settings:
                         continue

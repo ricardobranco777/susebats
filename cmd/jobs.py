@@ -40,8 +40,7 @@ def print_job(job: Job) -> None:
     """
     status = job.result.upper() if job.result == "failed" else job.result
     print(f"{status:10}  {job.url:<42}  {job.name}")
-    # Skip non-failed jobs
-    if status != "FAILED":
+    if status == "passed":
         return
     for result in job.results:
         # Skip non-failed modules

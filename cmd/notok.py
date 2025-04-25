@@ -70,7 +70,7 @@ def print_failures(job: Job, tap_files: list[str], alles: bool = False) -> None:
     """
     versions = get_versions(job.results)
     for file in tap_files:
-        package = file.split("_")[0]
+        package = file.split("-")[0]
         if package == "aardvark":
             package = "aardvark-dns"
         version = versions[package].git_version

@@ -30,7 +30,31 @@ class Test:
     name: str
     product: str
     url: str
-    settings: dict[str, list[str]]
+    settings: dict[str, str | list[str]]
+
+
+def fix_bats_settings(settings: dict[str, str | list[str]]) -> None:
+    """
+    Fix BATS_* settings
+    """
+    for setting in ("BATS_PACKAGE", "BATS_URL"):
+        if setting not in settings:
+            continue
+        # list[str] -> str
+        settings[setting] = settings[setting][0]
+    package = settings["BATS_PACKAGE"]
+    for setting in ("BATS_PATCHES",):
+        if setting not in settings:
+            continue
+        github_org = "opencontainers" if package == "runc" else "containers"
+        base_url = f"https://github.com/{github_org}/{package}"
+        if setting == "BATS_PATCHES":
+            patches = []
+            for patch in settings["BATS_PATCHES"]:
+                if patch.isnumeric():
+                    patch = f"{base_url}/pull/{patch}.diff"
+                patches.append(patch)
+            settings[setting] = patches
 
 
 def find_tests(file: io.TextIOWrapper) -> list[Test]:
@@ -66,6 +90,7 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
                         url = "https://openqa.suse.de"
                     params = data["products"][product] | {"arch": arch, "test": test}
                     url = f"{url}/tests/latest?{urlencode(params)}"
+                    fix_bats_settings(settings)
                     all_tests.append(
                         Test(name=test, product=product, url=url, settings=settings)
                     )

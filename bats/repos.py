@@ -37,24 +37,22 @@ def fix_bats_settings(settings: dict[str, str | list[str]]) -> None:
     """
     Fix BATS_* settings
     """
-    for setting in ("BATS_PACKAGE", "BATS_URL"):
-        if setting not in settings:
-            continue
-        # list[str] -> str
-        settings[setting] = settings[setting][0]
+    for setting, value in settings.items():
+        if setting == "BATS_PATCHES" or setting.startswith("BATS_SKIP"):
+            # str -> list[str]
+            assert isinstance(value, str)
+            settings[setting] = value.split()
+    if "BATS_PATCHES" not in settings:
+        return
     package = settings["BATS_PACKAGE"]
-    for setting in ("BATS_PATCHES",):
-        if setting not in settings:
-            continue
-        github_org = "opencontainers" if package == "runc" else "containers"
-        base_url = f"https://github.com/{github_org}/{package}"
-        if setting == "BATS_PATCHES":
-            patches = []
-            for patch in settings["BATS_PATCHES"]:
-                if patch.isnumeric():
-                    patch = f"{base_url}/pull/{patch}.diff"
-                patches.append(patch)
-            settings[setting] = patches
+    github_org = "opencontainers" if package == "runc" else "containers"
+    base_url = f"https://github.com/{github_org}/{package}"
+    patches = []
+    for patch in settings["BATS_PATCHES"]:
+        if patch.isnumeric():
+            patch = f"{base_url}/pull/{patch}.diff"
+        patches.append(patch)
+    settings["BATS_PATCHES"] = patches
 
 
 def find_tests(file: io.TextIOWrapper) -> list[Test]:
@@ -78,7 +76,7 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
                     if scenario[test] is None or "settings" not in scenario[test]:
                         continue
                     settings = {
-                        setting: scenario[test]["settings"][setting].split()
+                        setting: scenario[test]["settings"][setting]
                         for setting in sorted(scenario[test]["settings"])
                         if "BATS_" in setting
                     }

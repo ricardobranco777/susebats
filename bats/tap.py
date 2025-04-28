@@ -23,14 +23,14 @@ def list_tests(package: str, version: str) -> list[str]:
     repo, test_dir = re.findall(repo_regex, TEST_URL[package])[0]
 
     tag = version
-    if tag[0].isdigit() and not tag.startswith("v"):
-        tag = f"v{tag}"
-    elif tag == "":
+    if tag == "":
         api_url = f"https://api.github.com/repos/{repo}/tags"
         data = get_json(api_url)
         if data is None:
             sys.exit(f"ERROR: {package} {tag}")
         tag = data[0]["name"]
+    elif tag[0].isdigit() and not tag.startswith("v"):
+        tag = f"v{tag}"
 
     api_url = f"https://api.github.com/repos/{repo}/contents/{test_dir}"
     params = {"ref": tag}
@@ -62,8 +62,10 @@ def grep_notok(  # pylint: disable=too-many-branches
     # Second line may be like this: "# package version release DISTRI VERSION BUILD ARCH"
     # podman 5.4.2 1.1 opensuse Tumbleweed 20250426 x86_64
     package = version = ""
-    if "bats" not in lines[1]:
+    try:
         _, package, version, *_ = lines[1].split()
+    except ValueError:
+        pass
 
     for line in lines:
         if line.startswith(("not ok", "#not ok")):

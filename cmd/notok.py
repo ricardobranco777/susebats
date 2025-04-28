@@ -35,11 +35,11 @@ def process_files(files: list[str]) -> dict[str, str]:
     if len(files) > 1:
         for file in files:
             found[file] -= skip_common
-    info["BATS_SKIP"] = " ".join(sorted(skip_common)) or "none"
+    info["BATS_SKIP"] = " ".join(sorted(skip_common))
     if len(files) > 1:
         for file in files:
             skip = re.findall(TAP_REGEX, file)[0].replace("-", "_").upper()
-            info[f"BATS_SKIP_{skip}"] = " ".join(sorted(found[file])) or "none"
+            info[f"BATS_SKIP_{skip}"] = " ".join(sorted(found[file]))
     return info
 
 

@@ -15,7 +15,7 @@ from itertools import groupby
 from bats.job import get_job, Job
 from bats.requests import download_file
 from bats.tap import grep_notok
-from bats.versions import get_versions, TEST_URL
+from bats.versions import get_version, TEST_URL
 
 
 TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.tap$"
@@ -68,15 +68,14 @@ def print_failures(job: Job, tap_files: list[str], alles: bool = False) -> None:
     """
     Print job failures
     """
-    versions = get_versions(job.results)
+    package = job.settings["BATS_PACKAGE"]
+    version = get_version(job.results)
+    if version is None:
+        return
     for file in tap_files:
-        package = job.settings["BATS_PACKAGE"]
-        if package == "aardvark":
-            package = "aardvark-dns"
-        version = versions[package].git_version
         failed = grep_notok(file, alles=alles)
         for test in failed:
-            test_url = TEST_URL[package].format(version, test)
+            test_url = TEST_URL[package].format(version.git_version, test)
             print(file, test_url)
             for sub in failed[test]:
                 print(sub)

@@ -7,7 +7,8 @@ import argparse
 import sys
 
 from bats.job import get_job, Job
-from bats.versions import get_versions, get_published
+from bats.suse import fetch_version
+from bats.versions import get_version
 
 
 def main_versions(args: argparse.Namespace) -> None:
@@ -25,8 +26,10 @@ def print_versions(job: Job, verbose: bool = False) -> None:
     """
     Print job
     """
-    versions = get_versions(job.results)
-    published = {}
+    package = job.settings["BATS_PACKAGE"]
+    version = get_version(job.results)
+    if version is None:
+        sys.exit("ERROR: No version")
 
     fields = ["PACKAGE", "TAG", "TESTED"]
     fmt = "{:<12}  {:<12}  {:<30}"
@@ -34,19 +37,16 @@ def print_versions(job: Job, verbose: bool = False) -> None:
         fmt += "  {}"
         fields.append("PUBLISHED")
 
+    published = None
     if verbose:
         product = job.name.split("-Build")[0]
-        published = get_published(product, list(versions.keys()))
-    print(fmt.format(*fields))
+        published = fetch_version(product, package)
 
-    for package in sorted(versions):
-        print(
-            fmt.format(
-                *[
-                    package,
-                    versions[package].git_version,
-                    versions[package].rpm_version,
-                    published.get(package, ""),
-                ][: len(fields)]
-            )
+    print(fmt.format(*fields))
+    print(
+        fmt.format(
+            *[package, version.git_version, version.rpm_version, published][
+                : len(fields)
+            ]
         )
+    )

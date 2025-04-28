@@ -3,17 +3,16 @@ versions module
 """
 
 import re
-from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
-
-from bats.suse import fetch_version, RPMVersion
 
 
 PACKAGES = r"(aardvark-dns|buildah|netavark|podman|runc|skopeo)"
 GIT_VERSION = re.compile(rf"{PACKAGES} version$")
 RPM_VERSION = re.compile(rf"{PACKAGES} package version$")
 
+# NOTE: aardvark is repeated as aardvark-dns because we use aardvark.pm for the openQA module
 TEST_URL = {
+    "aardvark": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
     "aardvark-dns": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
     "buildah": "https://github.com/containers/buildah/blob/v{}/tests/{}.bats",
     "netavark": "https://github.com/containers/netavark/blob/v{}/test/{}.bats",
@@ -61,12 +60,10 @@ def get_git_version(title: str, info: str) -> tuple[str, str]:
     return package, version
 
 
-def get_versions(results: list[dict]) -> dict[str, Version]:
+def get_version(results: list[dict]) -> Version | None:
     """
     Get the git & RPM version for packages in openQA results
     """
-
-    versions: dict[str, Version] = {}
 
     # This needs to be done in openQA for this function to work, in this order:
     #   record_info("podman version", script_output("podman version"));
@@ -85,22 +82,6 @@ def get_versions(results: list[dict]) -> dict[str, Version]:
                 package, rpm_version = get_rpm_version(detail["text_data"])
                 break
         if package:
-            versions[package] = Version(
-                git_version=git_version, rpm_version=rpm_version
-            )
+            return Version(git_version=git_version, rpm_version=rpm_version)
 
-    return versions
-
-
-def get_published(product: str, packages: list[str]) -> dict[str, RPMVersion]:
-    """
-    Get published RPM versions for packages in product
-    """
-    published = {}
-    with ThreadPoolExecutor(max_workers=len(packages)) as executor:
-        for package, rpm_version in zip(
-            packages, executor.map(lambda p: fetch_version(product, p), packages)
-        ):
-            if rpm_version is not None:
-                published[package] = rpm_version
-    return published
+    return None

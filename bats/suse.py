@@ -44,6 +44,8 @@ def fetch_version(product: str, package: str) -> RPMVersion | None:
     """
     Fetch latest package version for the specified product
     """
+    if package == "aardvark":
+        package = "aardvark-dns"
     if product.startswith("opensuse"):
         url = "https://mirrorcache.opensuse.org/rest/search/package_locations"
         headers = {"Accept": "application/json"}
@@ -103,7 +105,6 @@ def get_product_identifier(product: str) -> str | None:
     elif product.startswith("opensuse-"):
         return None
 
-    assert identifier is not None
     return identifier
 
 

@@ -25,7 +25,7 @@ def list_tests(package: str, version: str) -> list[str]:
     tag = version
     if tag[0].isdigit() and not tag.startswith("v"):
         tag = f"v{tag}"
-    elif tag == "latest":
+    elif tag == "":
         api_url = f"https://api.github.com/repos/{repo}/tags"
         data = get_json(api_url)
         if data is None:
@@ -46,7 +46,9 @@ def list_tests(package: str, version: str) -> list[str]:
     return items
 
 
-def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
+def grep_notok(  # pylint: disable=too-many-branches
+    file: str, alles: bool = True
+) -> dict[str, list[str]]:
     """
     Find the failed tests in a .tap file
     """
@@ -57,7 +59,11 @@ def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
     buffer: list[str] = []
     tests = defaultdict(list)
 
-    package = ""
+    # Second line may be like this: "# package version release DISTRI VERSION BUILD ARCH"
+    # podman 5.4.2 1.1 opensuse Tumbleweed 20250426 x86_64
+    package = version = ""
+    if "bats" not in lines[1]:
+        _, package, version, *_ = lines[1].split()
 
     for line in lines:
         if line.startswith(("not ok", "#not ok")):
@@ -65,9 +71,8 @@ def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
             # so extract "130" from "not ok 295 [130] podman kill - print IDs or raw input"
             try:
                 number = re.findall(r"#?not ok \d+ \[(\d+)\] .*", line)[0]
-                package = "podman"
-                # FIX ME: We have to use real version
-                test = fnmatch.filter(list_tests(package, "latest"), f"{number}-*")[0]
+                package = package or "podman"
+                test = fnmatch.filter(list_tests(package, version), f"{number}-*")[0]
             except IndexError:
                 pass
             if test and buffer:

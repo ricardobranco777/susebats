@@ -102,8 +102,13 @@ def get_product_identifier(product: str) -> str | None:
     elif product.startswith("sle-15-SP"):
         version = product[len("sle-15-SP")]
         identifier = f"SLES/15.{version}/{arch}"
+    elif product.startswith("sle-16."):
+        version = product.split("-")[1]
+        identifier = f"SLES/{version}/{arch}"
     elif product.startswith("opensuse-"):
         return None
+    else:
+        raise ValueError(f"Unknown product: {product}")
 
     return identifier
 

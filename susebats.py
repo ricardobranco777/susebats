@@ -12,7 +12,7 @@ from cmd.notok import main_notok
 from cmd.versions import main_versions
 
 
-VERSION = "0.9.6"
+VERSION = "0.9.7"
 
 
 def main() -> None:

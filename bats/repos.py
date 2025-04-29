@@ -27,9 +27,9 @@ class Test:
     Test class
     """
 
+    url: str
     product: str
     name: str
-    url: str
     settings: dict[str, str | list[str]] = field(compare=False)
 
 

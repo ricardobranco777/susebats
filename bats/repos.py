@@ -6,7 +6,7 @@ import io
 import os
 import sys
 import tarfile
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from fnmatch import fnmatch
 from typing import Iterator
 from urllib.parse import urlencode
@@ -21,16 +21,16 @@ REPOS = (
 )
 
 
-@dataclass(frozen=True)
+@dataclass(frozen=True, order=True)
 class Test:
     """
     Test class
     """
 
-    name: str
     product: str
+    name: str
     url: str
-    settings: dict[str, str | list[str]]
+    settings: dict[str, str | list[str]] = field(compare=False)
 
 
 def fix_bats_settings(settings: dict[str, str | list[str]]) -> None:
@@ -93,7 +93,7 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
                         Test(name=test, product=product, url=url, settings=settings)
                     )
 
-    return list(sorted(all_tests, key=lambda p: p.url))
+    return all_tests
 
 
 def grep_tarball(
@@ -134,7 +134,9 @@ def get_tests(repo: str) -> list[Test]:
     """
     Get tests from YAML schedules in repo
     """
-    return [test for file in grep_tarball(repo, "*.yaml") for test in find_tests(file)]
+    tests = [test for file in grep_tarball(repo, "*.yaml") for test in find_tests(file)]
+    tests.sort()
+    return tests
 
 
 def get_urls(repo: str) -> list[str]:

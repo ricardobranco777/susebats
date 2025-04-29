@@ -10,7 +10,6 @@ import sys
 import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
-from itertools import groupby
 
 from bats.job import get_job, Job
 from bats.requests import download_file
@@ -85,13 +84,10 @@ def print_settings(job: Job, tap_files: list[str], diff: bool = False) -> None:
     """
     Print job settings
     """
-    # Group multiple .tap files by their prefixes:
-    # (podman|buildah|etc)-*.tap
-    for _, files in groupby(tap_files, key=lambda s: s.split("-")[0]):
-        info = process_files(list(files))
-        for key, value in info.items():
-            if diff and job.settings.get(key) != value:
-                print(f"- {key}: '{job.settings[key]}'")
-                print(f"+ {key}: '{value}'")
-            else:
-                print(f"  {key}: '{value}'")
+    info = process_files(tap_files)
+    for key, value in info.items():
+        if diff and job.settings.get(key) != value:
+            print(f"- {key}: '{job.settings[key]}'")
+            print(f"+ {key}: '{value}'")
+        else:
+            print(f"  {key}: '{value}'")

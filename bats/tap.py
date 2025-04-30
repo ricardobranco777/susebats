@@ -3,7 +3,6 @@ tap module
 """
 
 import fnmatch
-import os
 import re
 import sys
 from collections import defaultdict
@@ -88,10 +87,9 @@ def grep_notok(  # pylint: disable=too-many-branches
             test = ""
             buffer = []
         else:
-            matches = re.findall(r"in test file .*/(.*?\.bats)", line)
+            matches = re.findall(r"in test file .*/(.*?)\.bats", line)
             if matches:
-                filename = matches.pop()
-                test = os.path.basename(filename.removesuffix(".bats"))
+                test = matches.pop()
             buffer.append(line)
     if test and buffer:
         tests[test].append("\n".join(buffer) + "\n")

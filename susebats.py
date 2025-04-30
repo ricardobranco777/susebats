@@ -9,7 +9,6 @@ import sys
 from cmd.jobs import main_jobs
 from cmd.list import main_list
 from cmd.notok import main_notok
-from cmd.versions import main_versions
 
 
 VERSION = "0.9.7"
@@ -58,14 +57,6 @@ def main() -> None:
     )
     parser_notok.add_argument("url", help="openQA job")
     parser_notok.set_defaults(func=main_notok)
-
-    parser_versions = subparsers.add_parser(
-        "versions",
-        help="print versions of BATS tested packages in openQA job",
-    )
-    parser_versions.add_argument("-v", "--verbose", action="store_true")
-    parser_versions.add_argument("url", help="openQA job")
-    parser_versions.set_defaults(func=main_versions)
 
     args = parser.parse_args()
 

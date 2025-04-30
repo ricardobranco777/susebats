@@ -68,13 +68,13 @@ def print_failures(job: Job, tap_files: list[str], alles: bool = False) -> None:
     Print job failures
     """
     package = job.settings["BATS_PACKAGE"]
-    version = get_version(job.results)
+    version = get_version(package, job.results)
     if version is None:
         return
     for file in tap_files:
         failed = grep_notok(file, alles=alles)
         for test in failed:
-            test_url = TEST_URL[package].format(version.git_version, test)
+            test_url = TEST_URL[package].format(version, test)
             print(file, test_url)
             for sub in failed[test]:
                 print(sub)

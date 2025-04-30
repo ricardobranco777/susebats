@@ -3,12 +3,7 @@ versions module
 """
 
 import re
-from dataclasses import dataclass
 
-
-PACKAGES = r"(aardvark-dns|buildah|netavark|podman|runc|skopeo)"
-GIT_VERSION = re.compile(rf"{PACKAGES} version$")
-RPM_VERSION = re.compile(rf"{PACKAGES} package version$")
 
 # NOTE: aardvark is repeated as aardvark-dns because we use aardvark.pm for the openQA module
 TEST_URL = {
@@ -22,30 +17,10 @@ TEST_URL = {
 }
 
 
-@dataclass(frozen=True)
-class Version:
-    """
-    Version class
-    """
-
-    git_version: str
-    rpm_version: str
-
-
-def get_rpm_version(info: str) -> tuple[str, str]:
-    """
-    Get RPM version from package name
-    """
-    assert info.endswith((".aarch64", ".noarch", ".ppc64le", ".s390x", ".x86_64"))
-    package, version, release = info.rsplit(".", 1)[0].rsplit("-", 2)
-    return package, f"{version}-{release}"
-
-
-def get_git_version(title: str, info: str) -> tuple[str, str]:
+def get_git_version(info: str) -> str:
     """
     Get git version
     """
-    package = title.split()[0]
     version = ""
     lines = info.splitlines()
     for line in lines:
@@ -57,31 +32,25 @@ def get_git_version(title: str, info: str) -> tuple[str, str]:
             version = lines[0].split()[2]
         else:
             version = lines[0].split()[-1]
-    return package, version
+    return version
 
 
-def get_version(results: list[dict]) -> Version | None:
+def get_version(package: str, results: list[dict]) -> str | None:
     """
-    Get the git & RPM version for packages in openQA results
+    Get the git version for packages in openQA results
     """
 
-    # This needs to be done in openQA for this function to work, in this order:
+    # This needs to be done in openQA for this function to work:
     #   record_info("podman version", script_output("podman version"));
-    #   record_info("podman package version", script_output("rpm -q podman"));
     for result in results:
         # Skip TAP parser output
         if result["has_parser_text_result"]:
             continue
-        package = git_version = rpm_version = ""
         for detail in result["details"]:
             if "title" not in detail:
                 continue
-            if GIT_VERSION.match(detail["title"]):
-                _, git_version = get_git_version(detail["title"], detail["text_data"])
-            elif RPM_VERSION.match(detail["title"]):
-                package, rpm_version = get_rpm_version(detail["text_data"])
-                break
-        if package:
-            return Version(git_version=git_version, rpm_version=rpm_version)
+            if re.match(rf"{package} version", detail["title"]):
+                git_version = get_git_version(detail["text_data"])
+                return git_version
 
     return None

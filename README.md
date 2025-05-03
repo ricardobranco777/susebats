@@ -22,6 +22,8 @@ options:
 
 ## susebats jobs
 
+List openQA jobs and their statuses
+
 ```
 usage: susebats jobs [-h] [-b BUILD] [-v]
 
@@ -34,7 +36,21 @@ options:
 set GITLAB_TOKEN environment variable for gitlab
 ```
 
+Example:
+
+```
+$ susebats jobs
+passed      https://openqa.opensuse.org/tests/5037129   opensuse-Tumbleweed-DVD-x86_64-Build20250502-container_host_aardvark_testsuite@64bit
+passed      https://openqa.opensuse.org/tests/5037233   opensuse-Tumbleweed-DVD-x86_64-Build20250502-container_host_buildah_testsuite@64bit
+passed      https://openqa.opensuse.org/tests/5037127   opensuse-Tumbleweed-DVD-x86_64-Build20250502-container_host_netavark_testsuite@64bit
+passed      https://openqa.opensuse.org/tests/5037237   opensuse-Tumbleweed-DVD-x86_64-Build20250502-container_host_podman_testsuite@64bit
+passed      https://openqa.opensuse.org/tests/5037128   opensuse-Tumbleweed-DVD-x86_64-Build20250502-container_host_runc_testsuite@64bit
+passed      https://openqa.opensuse.org/tests/5037126   opensuse-Tumbleweed-DVD-x86_64-Build20250502-container_host_skopeo_testsuite@64bit
+```
+
 ## susebats list
+
+List current settings from YAML schedules
 
 ```
 usage: susebats list [-h]
@@ -43,6 +59,16 @@ options:
   -h, --help  show this help message and exit
 
 set GITLAB_TOKEN environment variable for gitlab
+```
+
+```
+$ susebats list | grep '^[a-z]'
+opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
+opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
+opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite
+opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_podman_testsuite
+opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_runc_testsuite
+opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_skopeo_testsuite
 ```
 
 ## susebats notok
@@ -62,4 +88,12 @@ options:
 
 positional arguments:
   url         openQA job
+```
+
+Example:
+
+```
+ susebats notok https://openqa.opensuse.org/tests/5037129
+  BATS_PACKAGE: 'aardvark'
+  BATS_SKIP: '100-basic-name-resolution 200-two-networks 300-three-networks'
 ```

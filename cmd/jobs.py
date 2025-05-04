@@ -41,6 +41,15 @@ def print_job(job: Job) -> None:
     status = job.result.upper() if job.result == "failed" else job.result
     print(f"{status:10}  {job.url:<42}  {job.name}")
     if status == "passed":
+        # Show skipped passed tests recorded by `record_info("PASS", $test)`
+        passed = {
+            detail["text_data"]
+            for result in job.results
+            for detail in result["details"]
+            if "title" in detail and detail["title"] == "PASS"
+        }
+        if len(passed) > 0:
+            print("\tPASSED:\t", " ".join(list(sorted(passed))))
         return
     for result in job.results:
         # Skip non-failed modules

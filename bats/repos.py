@@ -50,7 +50,7 @@ def fix_bats_settings(settings: dict[str, str | list[str]]) -> None:
     patches = []
     for patch in settings["BATS_PATCHES"]:
         if patch.isnumeric():
-            patch = f"{base_url}/pull/{patch}.diff"
+            patch = f"{base_url}/pull/{patch}.patch"
         patches.append(patch)
     settings["BATS_PATCHES"] = patches
 

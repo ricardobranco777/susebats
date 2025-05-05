@@ -50,12 +50,13 @@ def main_notok(args: argparse.Namespace) -> None:
     if job is None:
         sys.exit(f"ERROR: {args.url}")
 
-    if not job.logs:
+    tap_logs = [log for log in job.logs if log.endswith(".tap")]
+    if not tap_logs:
         sys.exit(f"ERROR: {args.url}: No .tap logs")
 
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
-        with ThreadPoolExecutor(max_workers=len(job.logs)) as executor:
-            downloaded_files = list(filter(None, executor.map(download_file, job.logs)))
+        with ThreadPoolExecutor(max_workers=len(tap_logs)) as executor:
+            downloaded_files = list(filter(None, executor.map(download_file, tap_logs)))
 
         if args.verbose:
             print_failures(job, downloaded_files, alles=args.verbose > 1)

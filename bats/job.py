@@ -80,11 +80,7 @@ def get_job(url: str, full: bool = False) -> Job | None:
     assert isinstance(info, dict)
 
     url = f"{urlx.scheme}://{urlx.netloc}/tests/{job_id}"
-    logs = [
-        urljoin(f"{url}/", f"file/{log}")
-        for log in info.get("ulogs", [])
-        if log.endswith(".tap")
-    ]
+    logs = [urljoin(f"{url}/", f"file/{log}") for log in info.get("ulogs", [])]
 
     comments: list[Comment] = []
     if full and info["result"] == "failed":

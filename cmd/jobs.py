@@ -27,19 +27,25 @@ def main_jobs(args: argparse.Namespace) -> None:
 
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
-            lambda u: get_job(build_url(u, build), full=args.verbose), urls
+            lambda u: get_job(
+                build_url(u, build), full=args.verbose, previous=args.previous
+            ),
+            urls,
         ):
             if job is None or build and not job.settings["BUILD"].startswith(build):
                 continue
-            print_job(job)
+            print_job(job, verbose=args.verbose)
 
 
-def print_job(job: Job) -> None:
+def print_job(job: Job, verbose: bool = False) -> None:
     """
     Print job
     """
     status = job.result.upper() if job.result == "failed" else job.result
     print(f"{status:10}  {job.url:<42}  {job.name}")
+    if not verbose:
+        return
+
     # Show skipped passed tests recorded by `record_info("PASS", $test)`
     passed = {
         detail["text_data"]
@@ -51,6 +57,10 @@ def print_job(job: Job) -> None:
         print("\tPASSED:\t", " ".join(list(sorted(passed))))
     if status == "passed":
         return
+
+    if job.origin:
+        print(f"\tCloned from: {job.origin}")
+
     for result in job.results:
         # Skip non-failed modules
         if result["result"] == "failed":
@@ -61,12 +71,13 @@ def print_job(job: Job) -> None:
                 # Skip non-failed sub-tests
                 if test["result"] == "fail":
                     print(f"\t{result['name']:<20}  {test['text_data']}")
+
     for comment in job.comments:
         if comment.text.startswith(
             ("Automatic investigation jobs", "Investigate retry job")
         ):
             continue
-        time = comment.updated.isoformat(sep=' ', timespec='seconds')
+        time = comment.updated.isoformat(sep=" ", timespec="seconds")
         for bugref in comment.bugrefs:
             print(f"\t=> {time} {bugref.url}\t{bugref.title} by {comment.author}")
         if len(comment.bugrefs) == 0:

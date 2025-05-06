@@ -31,6 +31,7 @@ options:
   -h, --help            show this help message and exit
   -b BUILD, --build BUILD
                         -DAYS_AGO or YYYYMMDD
+  -p, --previous
   -v, --verbose
 
 set GITLAB_TOKEN environment variable for gitlab

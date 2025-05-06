@@ -25,18 +25,19 @@ class Comment:
 
 
 @dataclass(frozen=True)
-class Job:
+class Job:  # pylint: disable=too-many-instance-attributes
     """
     Job class
     """
 
-    comments: list[Comment]
     name: str
+    url: str
+    origin: str
     logs: list[str]
     result: str
     results: list[dict]
     settings: dict[str, str]
-    url: str
+    comments: list[Comment]
 
 
 def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | None:
@@ -57,7 +58,7 @@ def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | No
     return data[0]["id"]
 
 
-def get_job(url: str, full: bool = False) -> Job | None:
+def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
     """
     Get a job
     """
@@ -80,6 +81,10 @@ def get_job(url: str, full: bool = False) -> Job | None:
     assert isinstance(info, dict)
 
     url = f"{urlx.scheme}://{urlx.netloc}/tests/{job_id}"
+
+    if previous and info["state"] != "done" and "origin_id" in info:
+        return get_job(urljoin(url, str(info["origin_id"])), previous)
+
     logs = [urljoin(f"{url}/", f"file/{log}") for log in info.get("ulogs", [])]
 
     comments: list[Comment] = []
@@ -100,12 +105,18 @@ def get_job(url: str, full: bool = False) -> Job | None:
                 for item in data
             ]
 
+    # Record the original job in case it's a clone
+    origin = ""
+    if info["result"] != "passed" and "origin_id" in info:
+        origin = urljoin(url, str(info["origin_id"]))
+
     return Job(
-        comments=comments,
-        logs=logs,
         name=info["name"],
+        url=url,
+        origin=origin,
+        logs=logs,
         result=info["result"] if info["result"] != "none" else info["state"],
         results=info.get("testresults", []),
         settings=info["settings"],
-        url=url,
+        comments=comments,
     )

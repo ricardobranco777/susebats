@@ -35,6 +35,7 @@ def main() -> None:
         epilog="set GITLAB_TOKEN environment variable for gitlab",
     )
     parser_jobs.add_argument("-b", "--build", help="-DAYS_AGO or YYYYMMDD")
+    parser_jobs.add_argument("-p", "--previous", action="store_true")
     parser_jobs.add_argument("-v", "--verbose", action="store_true")
     parser_jobs.set_defaults(func=main_jobs)
 

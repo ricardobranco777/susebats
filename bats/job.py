@@ -4,6 +4,7 @@ Job module
 
 import os
 from dataclasses import dataclass
+from datetime import datetime
 from urllib.parse import parse_qs, urljoin, urlparse
 
 from bats.requests import get_json
@@ -31,12 +32,12 @@ class Job:  # pylint: disable=too-many-instance-attributes
 
     name: str
     url: str
-    origin: str
     logs: list[str]
     result: str
     results: list[dict]
     settings: dict[str, str]
     comments: list[Comment]
+    extra: dict[str, str | int]
 
 
 def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | None:
@@ -104,18 +105,27 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
                 for item in data
             ]
 
-    # Record the original job in case it's a clone
-    origin = ""
-    if info["result"] != "passed" and "origin_id" in info:
-        origin = urljoin(url, str(info["origin_id"]))
+    seconds = -1
+    if info["t_started"] and info["t_finished"]:
+        seconds = int(
+            (
+                datetime.fromisoformat(info["t_finished"])
+                - datetime.fromisoformat(info["t_started"])
+            ).total_seconds()
+        )
 
     return Job(
         name=info["name"],
         url=url,
-        origin=origin,
         logs=logs,
         result=info["result"] if info["result"] != "none" else info["state"],
         results=info.get("testresults", []),
         settings=info["settings"],
         comments=comments,
+        extra={
+            "origin": (
+                urljoin(url, str(info["origin_id"])) if "origin_id" in info else ""
+            ),
+            "seconds": seconds,
+        },
     )

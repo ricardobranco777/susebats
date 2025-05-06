@@ -98,8 +98,7 @@ def print_comments(job: Job) -> None:
             ("Automatic investigation jobs", "Investigate retry job")
         ):
             continue
-        time = comment.updated.isoformat(sep=" ", timespec="seconds")
         for bugref in comment.bugrefs:
-            print(f"\t=> {time} {bugref.url}\t{bugref.title} by {comment.author}")
+            print(f"\t{bugref.url}\t{bugref.title}")
         if len(comment.bugrefs) == 0:
-            print(f"\t=> {time} {comment.text} by {comment.author}")
+            print(f"\t{comment.text} by {comment.author}")

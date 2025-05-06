@@ -3,11 +3,15 @@ List BATS jobs on o.s.d & o3
 """
 
 import argparse
+import re
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 from bats.repos import REPOS, build_url, get_urls
 from bats.job import get_job, Job
+
+
+TIMING = re.compile(r" in \d+ms$")
 
 
 def main_jobs(args: argparse.Namespace) -> None:
@@ -81,7 +85,8 @@ def print_results(job: Job) -> None:
             for test in result["details"]:
                 # Skip non-failed sub-tests
                 if test["result"] == "fail":
-                    print(f"\t{result['name']:<20}  {test['text_data']}")
+                    title = TIMING.sub("", test["text_data"])
+                    print(f"\t{result['name']:<20}  {title}")
 
 
 def print_comments(job: Job) -> None:

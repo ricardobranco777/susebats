@@ -60,13 +60,14 @@ def print_job(job: Job) -> None:
             for test in result["details"]:
                 # Skip non-failed sub-tests
                 if test["result"] == "fail":
-                    print(f"\t{result['name']:<30}  {test['text_data']}")
+                    print(f"\t{result['name']:<20}  {test['text_data']}")
     for comment in job.comments:
         if comment.text.startswith(
             ("Automatic investigation jobs", "Investigate retry job")
         ):
             continue
+        time = comment.updated.isoformat(sep=' ', timespec='seconds')
         for bugref in comment.bugrefs:
-            print("=>", comment.updated.ctime(), bugref, "by", comment.author)
+            print(f"\t=> {time} {bugref.url}\t{bugref.title} by {comment.author}")
         if len(comment.bugrefs) == 0:
-            print("=>", comment.updated.ctime(), comment.text, "by", comment.author)
+            print(f"\t=> {time} {comment.text} by {comment.author}")

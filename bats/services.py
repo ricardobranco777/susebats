@@ -24,7 +24,7 @@ class Issue:
     """
 
     url: str
-    summary: str
+    title: str
 
 
 def get_bugzilla_issue(url: str) -> Issue | None:
@@ -52,7 +52,7 @@ def get_bugzilla_issue(url: str) -> Issue | None:
         error = str(exc).split("?", maxsplit=1)[0]
         print(f"ERROR: {url}: {error}", file=sys.stderr)
         return None
-    return Issue(url=url, summary=data[0]["summary"])
+    return Issue(url=url, title=data[0]["summary"])
 
 
 def get_github_issue(repo: str, issue: int) -> Issue | None:
@@ -68,7 +68,7 @@ def get_github_issue(repo: str, issue: int) -> Issue | None:
         return None
     assert isinstance(data, dict)
     url = f"https://github.com/{repo}/issues/{issue}"
-    return Issue(url=url, summary=data["title"])
+    return Issue(url=url, title=data["title"])
 
 
 def get_redmine_issue(url: str) -> Issue | None:
@@ -83,7 +83,7 @@ def get_redmine_issue(url: str) -> Issue | None:
     if data is None:
         return None
     assert isinstance(data, dict)
-    return Issue(url=url, summary=data["subject"])
+    return Issue(url=url, title=data["subject"])
 
 
 def get_tagurl(tag: str) -> Issue | None:
@@ -104,7 +104,7 @@ def get_tagurl(tag: str) -> Issue | None:
         code, issue = tag.split("#", 1)
     host = tag_to_host.get(code)
     if host is None:
-        return Issue(url="", summary=tag)
+        return Issue(url="", title=tag)
 
     url = ""
     if host.startswith("bugzilla"):
@@ -115,4 +115,4 @@ def get_tagurl(tag: str) -> Issue | None:
         return get_redmine_issue(url)
     if host.endswith("github.com"):
         return get_github_issue(repo, int(issue))
-    return Issue(url="", summary=tag)
+    return Issue(url="", title=tag)

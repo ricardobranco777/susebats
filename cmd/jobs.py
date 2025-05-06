@@ -45,8 +45,19 @@ def print_job(job: Job, verbose: bool = False) -> None:
     print(f"{status:10}  {job.url:<42}  {job.name}")
     if not verbose:
         return
+    print_passed(job)
+    if status == "passed":
+        return
+    if job.origin:
+        print(f"\tCloned from: {job.origin}")
+    print_results(job)
+    print_comments(job)
 
-    # Show skipped passed tests recorded by `record_info("PASS", $test)`
+
+def print_passed(job: Job) -> None:
+    """
+    Print skipped passed tests recorded by `record_info("PASS", $test)`
+    """
     passed = {
         detail["text_data"]
         for result in job.results
@@ -55,12 +66,12 @@ def print_job(job: Job, verbose: bool = False) -> None:
     }
     if len(passed) > 0:
         print("\tPASSED:\t", " ".join(list(sorted(passed))))
-    if status == "passed":
-        return
 
-    if job.origin:
-        print(f"\tCloned from: {job.origin}")
 
+def print_results(job: Job) -> None:
+    """
+    Print results
+    """
     for result in job.results:
         # Skip non-failed modules
         if result["result"] == "failed":
@@ -72,6 +83,11 @@ def print_job(job: Job, verbose: bool = False) -> None:
                 if test["result"] == "fail":
                     print(f"\t{result['name']:<20}  {test['text_data']}")
 
+
+def print_comments(job: Job) -> None:
+    """
+    Print comments
+    """
     for comment in job.comments:
         if comment.text.startswith(
             ("Automatic investigation jobs", "Investigate retry job")

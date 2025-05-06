@@ -11,6 +11,7 @@ from bats.repos import REPOS, build_url, get_urls
 from bats.job import get_job, Job
 
 
+EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite@.*$")
 TIMING = re.compile(r" in \d+ms$")
 
 
@@ -46,7 +47,9 @@ def print_job(job: Job, verbose: bool = False) -> None:
     Print job
     """
     status = job.result.upper() if job.result == "failed" else job.result
-    print(f"{status:10}  {job.url:<42}  {job.name}")
+    package = job.settings["BATS_PACKAGE"]
+    name = EXTRA.sub("", job.name)
+    print(f"{status:10}  {package:10}  {job.url:<42}  {name}")
     if not verbose:
         return
     print_passed(job)

@@ -45,9 +45,7 @@ def list_tests(package: str, version: str) -> list[str]:
     return items
 
 
-def grep_notok(  # pylint: disable=too-many-branches
-    file: str, alles: bool = True
-) -> dict[str, list[str]]:
+def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
     """
     Find the failed tests in a .tap file
     """
@@ -78,8 +76,7 @@ def grep_notok(  # pylint: disable=too-many-branches
                 pass
             if test and buffer:
                 tests[test].append("\n".join(buffer) + "\n")
-            if package != "podman":
-                test = ""
+            test = test if package == "podman" else ""
             buffer = [line]
         elif line.startswith("ok"):
             if test and buffer:

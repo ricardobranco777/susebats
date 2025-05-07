@@ -5,7 +5,6 @@ tap module
 import fnmatch
 import re
 import sys
-from collections import defaultdict
 from dataclasses import dataclass
 from functools import cache
 
@@ -56,7 +55,7 @@ def list_files(package: str, version: str) -> list[str]:
     return items
 
 
-def grep_notok(file: str, alles: bool = True) -> list[Test]:
+def grep_notok(file: str) -> list[Test]:
     """
     Find the failed tests in a .tap file
     """
@@ -65,7 +64,7 @@ def grep_notok(file: str, alles: bool = True) -> list[Test]:
 
     test = ""
     buffer: list[str] = []
-    tests = defaultdict(list)
+    tests = []
 
     # Second line may be like this: "# package version release DISTRI VERSION BUILD ARCH"
     # podman 5.4.2 1.1 opensuse Tumbleweed 20250426 x86_64
@@ -86,12 +85,12 @@ def grep_notok(file: str, alles: bool = True) -> list[Test]:
             except IndexError:
                 pass
             if test and buffer:
-                tests[test].append("\n".join(buffer) + "\n")
+                tests.append(Test(name=test, lines=buffer))
             test = test if package == "podman" else ""
             buffer = [line]
         elif line.startswith("ok"):
             if test and buffer:
-                tests[test].append("\n".join(buffer) + "\n")
+                tests.append(Test(name=test, lines=buffer))
             test = ""
             buffer = []
         else:
@@ -100,14 +99,6 @@ def grep_notok(file: str, alles: bool = True) -> list[Test]:
                 test = matches.pop()
             buffer.append(line)
     if test and buffer:
-        tests[test].append("\n".join(buffer) + "\n")
+        tests.append(Test(name=test, lines=buffer))
 
-    if not alles:
-        for test in tests:
-            tests[test] = list(filter(lambda s: not s.startswith("#"), tests[test]))
-
-    test_list = []
-    for test in tests:
-        if tests[test]:
-            test_list.append(Test(name=test, lines=tests[test]))
-    return test_list
+    return [t for t in tests if t.lines[0].startswith(("not ok", "#not ok"))]

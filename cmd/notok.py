@@ -59,12 +59,12 @@ def main_notok(args: argparse.Namespace) -> None:
             downloaded_files = list(filter(None, executor.map(download_file, tap_logs)))
 
         if args.verbose:
-            print_failures(job, downloaded_files, alles=args.verbose > 1)
+            print_failures(job, downloaded_files, verbose=args.verbose > 1)
         else:
             print_settings(job, downloaded_files, diff=args.diff)
 
 
-def print_failures(job: Job, tap_files: list[str], alles: bool = False) -> None:
+def print_failures(job: Job, tap_files: list[str], verbose: bool = False) -> None:
     """
     Print job failures
     """
@@ -73,12 +73,15 @@ def print_failures(job: Job, tap_files: list[str], alles: bool = False) -> None:
     if version is None:
         return
     for file in tap_files:
-        failed = grep_notok(file, alles=alles)
+        failed = grep_notok(file)
         for test in failed:
+            if not test.lines:
+                continue
+            if not verbose and test.lines[0].startswith("#"):
+                continue
             test_url = TEST_URL[package].format(version, test.name)
             print(file, test_url)
-            for sub in test.lines:
-                print(sub)
+            print("\n".join(test.lines) + "\n")
 
 
 def print_settings(job: Job, tap_files: list[str], diff: bool = False) -> None:

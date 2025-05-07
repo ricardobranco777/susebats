@@ -69,6 +69,8 @@ def print_failures(job: Job, tap_files: list[str], verbose: bool = False) -> Non
     Print job failures
     """
     package = job.settings["BATS_PACKAGE"]
+    if package == "aardvark":
+        package = "aardvark-dns"
     version = get_version(package, job.results)
     if version is None:
         return

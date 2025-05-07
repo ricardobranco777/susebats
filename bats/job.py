@@ -114,6 +114,9 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
             ).total_seconds()
         )
 
+    for key in ("clone_id", "origin_id"):
+        info[key] = urljoin(url, str(info[key])) if info.get(key) else ""
+
     return Job(
         name=info["name"],
         url=url,
@@ -123,9 +126,8 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
         settings=info["settings"],
         comments=comments,
         extra={
-            "origin": (
-                urljoin(url, str(info["origin_id"])) if "origin_id" in info else ""
-            ),
+            "cloned_as": info["clone_id"],
+            "cloned_from": info["origin_id"],
             "seconds": seconds,
         },
     )

@@ -6,14 +6,25 @@ import fnmatch
 import re
 import sys
 from collections import defaultdict
+from dataclasses import dataclass
 from functools import cache
 
 from bats.requests import get_json
 from bats.versions import TEST_URL
 
 
+@dataclass(frozen=True)
+class Test:
+    """
+    Test class
+    """
+
+    name: str
+    lines: list[str]
+
+
 @cache
-def list_tests(package: str, version: str) -> list[str]:
+def list_files(package: str, version: str) -> list[str]:
     """
     List tests from upstream
     """
@@ -45,7 +56,7 @@ def list_tests(package: str, version: str) -> list[str]:
     return items
 
 
-def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
+def grep_notok(file: str, alles: bool = True) -> list[Test]:
     """
     Find the failed tests in a .tap file
     """
@@ -66,12 +77,12 @@ def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
 
     for line in lines:
         if line.startswith(("not ok", "#not ok")):
-            # Sometimes, bats failures in podman don't show the "in test file" in the else below
+            # bats failures in podman may not show the "in test file" in the else block below
             # so extract "130" from "not ok 295 [130] podman kill - print IDs or raw input"
             try:
                 number = re.findall(r"#?not ok \d+ \[(\d+)\] .*", line)[0]
                 package = package or "podman"
-                test = fnmatch.filter(list_tests(package, version), f"{number}-*")[0]
+                test = fnmatch.filter(list_files(package, version), f"{number}-*")[0]
             except IndexError:
                 pass
             if test and buffer:
@@ -95,4 +106,8 @@ def grep_notok(file: str, alles: bool = True) -> dict[str, list[str]]:
         for test in tests:
             tests[test] = list(filter(lambda s: not s.startswith("#"), tests[test]))
 
-    return {test: tests[test] for test in tests if tests[test]}
+    test_list = []
+    for test in tests:
+        if tests[test]:
+            test_list.append(Test(name=test, lines=tests[test]))
+    return test_list

@@ -18,7 +18,9 @@ class Comment:
 
     author: str
     bugrefs: list[Issue]
+    created: datetime
     text: str
+    updated: datetime
 
 
 @dataclass(frozen=True)
@@ -95,7 +97,9 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
                     bugrefs=list(
                         filter(None, (get_tagurl(b) for b in item["bugrefs"]))
                     ),
+                    created=datetime.fromisoformat(item["created"]).astimezone(),
                     text=item["text"].replace("\r", "").replace("\n", " ").strip(),
+                    updated=datetime.fromisoformat(item["updated"]).astimezone(),
                 )
                 for item in data
             ]

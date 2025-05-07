@@ -12,7 +12,7 @@ from bats.job import get_job, Job
 
 
 EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite@.*$")
-TIMING = re.compile(r" in \d+ms$")
+TIMING = re.compile(r" in \d+ms(?: # .*)?$")
 
 
 def main_jobs(args: argparse.Namespace) -> None:

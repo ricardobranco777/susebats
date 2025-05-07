@@ -9,7 +9,18 @@ from dataclasses import dataclass
 from functools import cache
 
 from bats.requests import get_json
-from bats.versions import TEST_URL
+
+
+# NOTE: aardvark is repeated as aardvark-dns because we use aardvark.pm for the openQA module
+TEST_URL = {
+    "aardvark": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
+    "aardvark-dns": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
+    "buildah": "https://github.com/containers/buildah/blob/v{}/tests/{}.bats",
+    "netavark": "https://github.com/containers/netavark/blob/v{}/test/{}.bats",
+    "podman": "https://github.com/containers/podman/blob/v{}/test/system/{}.bats",
+    "runc": "https://github.com/opencontainers/runc/blob/v{}/tests/integration/{}.bats",
+    "skopeo": "https://github.com/containers/skopeo/blob/v{}/systemtest/{}.bats",
+}
 
 
 @dataclass(frozen=True)
@@ -19,7 +30,15 @@ class Test:
     """
 
     name: str
+    url: str
     lines: list[str]
+
+
+def get_url(package: str, version: str, test: str) -> str:
+    """
+    Get URL for test
+    """
+    return TEST_URL[package].format(version, test)
 
 
 @cache
@@ -85,12 +104,16 @@ def grep_notok(file: str) -> list[Test]:
             except IndexError:
                 pass
             if test and buffer:
-                tests.append(Test(name=test, lines=buffer))
+                tests.append(
+                    Test(name=test, url=get_url(package, version, test), lines=buffer)
+                )
             test = test if package == "podman" else ""
             buffer = [line]
         elif line.startswith("ok"):
             if test and buffer:
-                tests.append(Test(name=test, lines=buffer))
+                tests.append(
+                    Test(name=test, url=get_url(package, version, test), lines=buffer)
+                )
             test = ""
             buffer = []
         else:
@@ -99,6 +122,6 @@ def grep_notok(file: str) -> list[Test]:
                 test = matches.pop()
             buffer.append(line)
     if test and buffer:
-        tests.append(Test(name=test, lines=buffer))
+        tests.append(Test(name=test, url=get_url(package, version, test), lines=buffer))
 
     return [t for t in tests if t.lines[0].startswith(("not ok", "#not ok"))]

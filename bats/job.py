@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from datetime import datetime
 from urllib.parse import parse_qs, urljoin, urlparse
 
+from bats.issues import get_issue, Issue
 from bats.requests import get_json
-from bats.services import get_issue, Issue
 
 
 @dataclass(frozen=True)

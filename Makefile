@@ -16,7 +16,8 @@ black:
 	@black --check $(FILES)
 
 .PHONY: shellcheck
-	@shellcheck entrypoint.sh susebats
+shellcheck:
+	@shellcheck susebats
 
 .PHONY: install
 install:

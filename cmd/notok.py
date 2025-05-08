@@ -58,18 +58,15 @@ def main_notok(args: argparse.Namespace) -> None:
             downloaded_files = list(filter(None, executor.map(download_file, tap_logs)))
 
         if args.verbose:
-            print_failures(job, downloaded_files, verbose=args.verbose > 1)
+            print_failures(downloaded_files, verbose=args.verbose > 1)
         else:
             print_settings(job, downloaded_files, diff=args.diff)
 
 
-def print_failures(job: Job, tap_files: list[str], verbose: bool = False) -> None:
+def print_failures(tap_files: list[str], verbose: bool = False) -> None:
     """
     Print job failures
     """
-    package = job.settings["BATS_PACKAGE"]
-    if package == "aardvark":
-        package = "aardvark-dns"
     for file in tap_files:
         failed = grep_notok(file)
         for test in failed:

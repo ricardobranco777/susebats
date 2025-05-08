@@ -97,7 +97,7 @@ def print_comments(job: Job) -> None:
             ("Automatic investigation jobs", "Investigate retry job")
         ):
             continue
-        for bugref in comment.bugrefs:
+        for bugref in comment.issues:
             print(f"\t{bugref.url}\t{bugref.title}")
-        if len(comment.bugrefs) == 0:
+        if len(comment.issues) == 0:
             print(f"\t{comment.text} by {comment.author}")

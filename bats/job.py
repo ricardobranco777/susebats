@@ -8,7 +8,7 @@ from datetime import datetime
 from urllib.parse import parse_qs, urljoin, urlparse
 
 from bats.requests import get_json
-from bats.services import get_tagurl, Issue
+from bats.services import get_issue, Issue
 
 
 @dataclass(frozen=True)
@@ -18,10 +18,10 @@ class Comment:
     """
 
     author: str
-    bugrefs: list[Issue]
     created: datetime
-    text: str
     updated: datetime
+    text: str
+    issues: list[Issue]
 
 
 @dataclass(frozen=True)
@@ -32,8 +32,8 @@ class Job:  # pylint: disable=too-many-instance-attributes
 
     name: str
     url: str
-    logs: list[str]
     result: str
+    logs: list[str]
     results: list[dict]
     settings: dict[str, str]
     comments: list[Comment]
@@ -95,12 +95,10 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
             comments = [
                 Comment(
                     author=item["userName"],
-                    bugrefs=list(
-                        filter(None, (get_tagurl(b) for b in item["bugrefs"]))
-                    ),
                     created=datetime.fromisoformat(item["created"]).astimezone(),
-                    text=item["text"].replace("\r", "").replace("\n", " ").strip(),
                     updated=datetime.fromisoformat(item["updated"]).astimezone(),
+                    text=item["text"].replace("\r", "").replace("\n", " ").strip(),
+                    issues=list(filter(None, (get_issue(b) for b in item["bugrefs"]))),
                 )
                 for item in data
             ]

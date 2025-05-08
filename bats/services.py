@@ -86,9 +86,9 @@ def get_redmine_issue(url: str) -> Issue | None:
     return Issue(url=url, title=data["subject"])
 
 
-def get_tagurl(tag: str) -> Issue | None:
+def get_issue(tag: str) -> Issue | None:
     """
-    Get URL from tag
+    Get issue from tag
     """
     tag_to_host = {
         "bsc": "bugzilla.suse.com",

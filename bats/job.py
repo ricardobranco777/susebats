@@ -87,7 +87,19 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
     if previous and info["state"] != "done" and "origin_id" in info:
         return get_job(urljoin(url, str(info["origin_id"])), previous)
 
+    for key in ("clone_id", "origin_id"):
+        info[key] = urljoin(url, str(info[key])) if info.get(key) else ""
+
     logs = [urljoin(f"{url}/", f"file/{log}") for log in info.get("ulogs", [])]
+
+    seconds = -1
+    if info["t_started"] and info["t_finished"]:
+        seconds = int(
+            (
+                datetime.fromisoformat(info["t_finished"])
+                - datetime.fromisoformat(info["t_started"])
+            ).total_seconds()
+        )
 
     comments: list[Comment] = []
     if full and info["result"] == "failed":
@@ -104,18 +116,6 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
                 )
                 for item in data
             ]
-
-    seconds = -1
-    if info["t_started"] and info["t_finished"]:
-        seconds = int(
-            (
-                datetime.fromisoformat(info["t_finished"])
-                - datetime.fromisoformat(info["t_started"])
-            ).total_seconds()
-        )
-
-    for key in ("clone_id", "origin_id"):
-        info[key] = urljoin(url, str(info[key])) if info.get(key) else ""
 
     return Job(
         name=info["name"],

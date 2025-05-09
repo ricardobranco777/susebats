@@ -74,16 +74,12 @@ def list_files(package: str, version: str) -> list[str]:
     return items
 
 
-def grep_notok(file: str) -> list[Test]:
+def grep_notok(file: str, ignored: bool = False) -> list[Test]:
     """
     Find the failed tests in a .tap file
     """
     with open(file, encoding="utf-8") as f:
         lines = f.read().splitlines()
-
-    test = ""
-    buffer: list[str] = []
-    tests = []
 
     # Second line may be like this: "# package version release DISTRI VERSION BUILD ARCH"
     # podman 5.4.2 1.1 opensuse Tumbleweed 20250426 x86_64
@@ -93,8 +89,16 @@ def grep_notok(file: str) -> list[Test]:
     except ValueError:
         pass
 
+    test = ""
+    tests = []
+    buffer: list[str] = []
+
     for line in lines:
-        if line.startswith(("not ok", "#not ok")):
+        if line.startswith(("ok", "not ok", "#not ok")):
+            if test and buffer:
+                tests.append(
+                    Test(name=test, url=get_url(package, version, test), lines=buffer)
+                )
             # bats failures in podman may not show the "in test file" in the else block below
             # so extract "130" from "not ok 295 [130] podman kill - print IDs or raw input"
             try:
@@ -103,19 +107,12 @@ def grep_notok(file: str) -> list[Test]:
                 test = fnmatch.filter(list_files(package, version), f"{number}-*")[0]
             except IndexError:
                 pass
-            if test and buffer:
-                tests.append(
-                    Test(name=test, url=get_url(package, version, test), lines=buffer)
-                )
-            test = test if package == "podman" else ""
-            buffer = [line]
-        elif line.startswith("ok"):
-            if test and buffer:
-                tests.append(
-                    Test(name=test, url=get_url(package, version, test), lines=buffer)
-                )
-            test = ""
-            buffer = []
+            if line.startswith("ok"):
+                test = ""
+                buffer = []
+            else:
+                test = test if package == "podman" else ""
+                buffer = [line]
         else:
             matches = re.findall(r"in test file .*/(.*?)\.bats", line)
             if matches:
@@ -124,4 +121,9 @@ def grep_notok(file: str) -> list[Test]:
     if test and buffer:
         tests.append(Test(name=test, url=get_url(package, version, test), lines=buffer))
 
-    return [t for t in tests if t.lines[0].startswith(("not ok", "#not ok"))]
+    return [
+        t
+        for t in tests
+        if t.lines[0].startswith("not ok")
+        or (t.lines[0].startswith("#not ok") and ignored)
+    ]

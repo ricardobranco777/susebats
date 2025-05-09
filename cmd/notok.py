@@ -27,7 +27,7 @@ def process_files(files: list[str]) -> dict[str, str]:
     skip_common = set()
     found: dict[str, set] = {}
     for file in files:
-        found[file] = set(t.name for t in grep_notok(file))
+        found[file] = set(t.name for t in grep_notok(file, ignored=True))
     # Find failed subtests in all scenarios for general skip variable
     skip_common = reduce(lambda x, y: x & y, found.values())
     if len(files) > 1:
@@ -68,12 +68,8 @@ def print_failures(tap_files: list[str], verbose: bool = False) -> None:
     Print job failures
     """
     for file in tap_files:
-        failed = grep_notok(file)
+        failed = grep_notok(file, ignored=verbose)
         for test in failed:
-            if not test.lines:
-                continue
-            if not verbose and test.lines[0].startswith("#"):
-                continue
             print(file, test.url)
             print("\n" + "\n".join(test.lines) + "\n")
 

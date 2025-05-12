@@ -8,7 +8,7 @@ import sys
 import tarfile
 from dataclasses import dataclass, field
 from fnmatch import fnmatch
-from typing import Iterator
+from typing import Callable, Iterator
 from urllib.parse import urlencode
 
 import requests
@@ -33,7 +33,10 @@ class Test:
     settings: dict[str, str | list[str]] = field(compare=False)
 
 
-def find_tests(file: io.TextIOWrapper) -> list[Test]:
+def find_tests(
+    file: io.TextIOWrapper,
+    match: Callable,
+) -> list[Test]:
     """
     Find tests in YAML schedule with settings containing "BATS_PACKAGE"
     """
@@ -53,7 +56,7 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
                 for test in scenario.keys():
                     if scenario[test] is None or "settings" not in scenario[test]:
                         continue
-                    if "BATS_PACKAGE" not in scenario[test]["settings"]:
+                    if not match(scenario[test]):
                         continue
                     settings = scenario[test]["settings"]
                     if product.startswith("opensuse"):
@@ -103,11 +106,22 @@ def grep_tarball(
         print(f"ERROR: {url}: {error}", file=sys.stderr)
 
 
+def bats_test(test: dict[str, str]) -> bool:
+    """
+    Filter to be used on find_tests()
+    """
+    return "BATS_PACKAGE" in test["settings"]
+
+
 def get_tests(repo: str) -> list[Test]:
     """
     Get tests from YAML schedules in repo
     """
-    tests = [test for file in grep_tarball(repo, "*.yaml") for test in find_tests(file)]
+    tests = [
+        test
+        for file in grep_tarball(repo, "*.yaml")
+        for test in find_tests(file, match=bats_test)
+    ]
     tests.sort()
     return tests
 

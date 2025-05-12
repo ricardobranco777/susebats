@@ -78,15 +78,14 @@ def print_settings(job: Job, tap_files: list[str], diff: bool = False) -> None:
     """
     Print job settings
     """
-    if not diff:
-        for key, value in job.settings.items():
-            if key.startswith("BATS_SKIP") or not key.startswith("BATS_"):
-                continue
-            print(f"  {key}: '{value}'")
     info = process_files(tap_files)
-    for key, value in info.items():
-        if diff and job.settings.get(key) != value:
-            print(f"- {key}: '{job.settings[key]}'")
-            print(f"+ {key}: '{value}'")
-        else:
+    if diff:
+        for key, value in info.items():
+            if diff and job.settings.get(key) != value:
+                print(f"- {key}: '{job.settings[key]}'")
+                print(f"+ {key}: '{value}'")
+            else:
+                print(f"  {key}: '{value}'")
+    else:
+        for key, value in info.items():
             print(f"  {key}: '{value}'")

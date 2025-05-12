@@ -63,7 +63,7 @@ set GITLAB_TOKEN environment variable for gitlab
 ```
 
 ```
-$ susebats list | grep '^[a-z]'
+$ susebats list
 opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_aardvark_testsuite
 opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_buildah_testsuite
 opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=opensuse&flavor=DVD&version=Tumbleweed&arch=x86_64&test=container_host_netavark_testsuite

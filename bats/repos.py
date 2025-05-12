@@ -33,31 +33,9 @@ class Test:
     settings: dict[str, str | list[str]] = field(compare=False)
 
 
-def fix_bats_settings(settings: dict[str, str | list[str]]) -> None:
-    """
-    Fix BATS_* settings
-    """
-    for setting, value in settings.items():
-        if setting == "BATS_PATCHES" or setting.startswith("BATS_SKIP"):
-            # str -> list[str]
-            assert isinstance(value, str)
-            settings[setting] = value.split()
-    if "BATS_PATCHES" not in settings:
-        return
-    package = settings["BATS_PACKAGE"]
-    github_org = "opencontainers" if package == "runc" else "containers"
-    base_url = f"https://github.com/{github_org}/{package}"
-    patches = []
-    for patch in settings["BATS_PATCHES"]:
-        if patch.isnumeric():
-            patch = f"{base_url}/pull/{patch}.patch"
-        patches.append(patch)
-    settings["BATS_PATCHES"] = patches
-
-
 def find_tests(file: io.TextIOWrapper) -> list[Test]:
     """
-    Find tests in YAML schedule with settings containing "BATS_SKIP"
+    Find tests in YAML schedule with settings containing "BATS_PACKAGE"
     """
     try:
         data = yaml.safe_load(file)
@@ -67,7 +45,7 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
     if "scenarios" not in data:
         return []
 
-    all_tests: list[Test] = []
+    tests: list[Test] = []
 
     for arch, products in data["scenarios"].items():
         for product, scenarios in products.items():
@@ -75,25 +53,20 @@ def find_tests(file: io.TextIOWrapper) -> list[Test]:
                 for test in scenario.keys():
                     if scenario[test] is None or "settings" not in scenario[test]:
                         continue
-                    settings = {
-                        setting: scenario[test]["settings"][setting]
-                        for setting in sorted(scenario[test]["settings"])
-                        if "BATS_" in setting
-                    }
-                    if not settings:
+                    if "BATS_PACKAGE" not in scenario[test]["settings"]:
                         continue
+                    settings = scenario[test]["settings"]
                     if product.startswith("opensuse"):
                         url = "https://openqa.opensuse.org"
                     else:
                         url = "https://openqa.suse.de"
                     params = data["products"][product] | {"arch": arch, "test": test}
                     url = f"{url}/tests/latest?{urlencode(params)}"
-                    fix_bats_settings(settings)
-                    all_tests.append(
+                    tests.append(
                         Test(name=test, product=product, url=url, settings=settings)
                     )
 
-    return all_tests
+    return tests
 
 
 def grep_tarball(

@@ -19,8 +19,3 @@ def main_list(args: argparse.Namespace) -> None:
         for tests in executor.map(get_tests, REPOS):
             for test in tests:
                 print(f"{test.product}\t{test.url}")
-                for setting, values in test.settings.items():
-                    if isinstance(values, list):
-                        print(f"\t{setting}='{' '.join(values)}'")
-                    else:
-                        print(f"\t{setting}='{values}'")

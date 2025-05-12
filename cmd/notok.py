@@ -11,7 +11,7 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 
-from bats.job import get_job, Job
+from bats.job import get_job
 from bats.requests import download_file
 from bats.tap import grep_notok
 
@@ -60,7 +60,7 @@ def main_notok(args: argparse.Namespace) -> None:
         if args.verbose:
             print_failures(downloaded_files, verbose=args.verbose > 1)
         else:
-            print_settings(job, downloaded_files, diff=args.diff)
+            print_settings(downloaded_files)
 
 
 def print_failures(tap_files: list[str], verbose: bool = False) -> None:
@@ -74,18 +74,10 @@ def print_failures(tap_files: list[str], verbose: bool = False) -> None:
             print("\n" + "\n".join(test.lines) + "\n")
 
 
-def print_settings(job: Job, tap_files: list[str], diff: bool = False) -> None:
+def print_settings(tap_files: list[str]) -> None:
     """
     Print job settings
     """
     info = process_files(tap_files)
-    if diff:
-        for key, value in info.items():
-            if diff and job.settings.get(key) != value:
-                print(f"- {key}: '{job.settings[key]}'")
-                print(f"+ {key}: '{value}'")
-            else:
-                print(f"  {key}: '{value}'")
-    else:
-        for key, value in info.items():
-            print(f"  {key}: '{value}'")
+    for key, value in info.items():
+        print(f"  {key}: '{value}'")

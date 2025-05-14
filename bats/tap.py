@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from functools import cache
 
 from bats.requests import get_json
+from bats.issues import GITHUB_TOKEN
 
 
 # NOTE: aardvark is repeated as aardvark-dns because we use aardvark.pm for the openQA module
@@ -61,8 +62,10 @@ def list_files(package: str, version: str) -> list[str]:
         tag = f"v{tag}"
 
     api_url = f"https://api.github.com/repos/{repo}/contents/{test_dir}"
+    if GITHUB_TOKEN:
+        headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     params = {"ref": tag}
-    data = get_json(api_url, params=params)
+    data = get_json(api_url, headers=headers, params=params)
     if data is None:
         sys.exit(f"ERROR: {package} {tag}")
 

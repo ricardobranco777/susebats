@@ -62,6 +62,7 @@ def list_files(package: str, version: str) -> list[str]:
         tag = f"v{tag}"
 
     api_url = f"https://api.github.com/repos/{repo}/contents/{test_dir}"
+    headers = None
     if GITHUB_TOKEN:
         headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
     params = {"ref": tag}

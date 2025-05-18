@@ -17,7 +17,7 @@ def main_list(args: argparse.Namespace) -> None:
     _ = args
 
     with ThreadPoolExecutor(max_workers=len(REPOS)) as executor:
-        tests = list(chain.from_iterable(executor.map(get_tests, REPOS)))
+        tests = list(chain.from_iterable(executor.map(get_tests, REPOS.values())))
 
     if not tests:
         return

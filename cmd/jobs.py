@@ -8,6 +8,7 @@ from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta
 
 from bats.repos import REPOS, build_url, get_urls
+from bats.requests import ping
 from bats.job import get_job, Job
 
 
@@ -19,9 +20,21 @@ def main_jobs(args: argparse.Namespace) -> None:
     """
     Main function
     """
+    repos = []
+    for repo, url in REPOS.items():
+        openqa_url = "https://openqa.opensuse.org"
+        if repo == "osd":
+            openqa_url = "https://openqa.suse.de"
+        if ping(openqa_url):
+            print(url)
+            repos.append(url)
+    if len(repos) == 0:
+        return
+    print(repos)
+
     urls = []
-    with ThreadPoolExecutor(max_workers=len(REPOS)) as executor:
-        for results in executor.map(get_urls, REPOS):
+    with ThreadPoolExecutor(max_workers=len(repos)) as executor:
+        for results in executor.map(get_urls, repos):
             urls.extend(results)
 
     build = args.build

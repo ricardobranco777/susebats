@@ -68,6 +68,18 @@ def get_json(
     return data
 
 
+def ping(url: str, timeout: int = 5) -> bool:
+    """
+    Ping URL to see if it's reachable
+    """
+    try:
+        response = requests.head(url, timeout=timeout, allow_redirects=True)
+        return response.status_code < 400
+    except RequestException:
+        return False
+
+
 if os.getenv("DEBUG"):
     session.hooks["response"].append(debugme)
+
 atexit.register(session.close)

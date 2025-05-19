@@ -30,7 +30,6 @@ def main_jobs(args: argparse.Namespace) -> None:
             repos.append(url)
     if len(repos) == 0:
         return
-    print(repos)
 
     urls = []
     with ThreadPoolExecutor(max_workers=len(repos)) as executor:

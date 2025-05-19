@@ -4,7 +4,7 @@ List BATS jobs on o.s.d & o3
 
 import argparse
 import re
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 
 from bats.repos import REPOS, build_url, get_urls
@@ -16,18 +16,28 @@ EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite@.*$")
 TIMING = re.compile(r" in \d+ms(?: # .*)?$")
 
 
+def check_repo(repo: str, url: str) -> str | None:
+    """
+    Check repo availability
+    """
+    openqa_url = "https://openqa.opensuse.org"
+    if repo == "osd":
+        openqa_url = "https://openqa.suse.de"
+    if ping(openqa_url):
+        return url
+    return None
+
+
 def main_jobs(args: argparse.Namespace) -> None:
     """
     Main function
     """
-    repos = []
-    for repo, url in REPOS.items():
-        openqa_url = "https://openqa.opensuse.org"
-        if repo == "osd":
-            openqa_url = "https://openqa.suse.de"
-        if ping(openqa_url):
-            print(url)
-            repos.append(url)
+    with ThreadPoolExecutor(max_workers=len(REPOS)) as executor:
+        futures = [
+            executor.submit(check_repo, repo, url) for repo, url in REPOS.items()
+        ]
+        repos = [future.result() for future in as_completed(futures) if future.result()]
+
     if len(repos) == 0:
         return
 

@@ -71,7 +71,7 @@ def print_job(job: Job, verbose: bool = False) -> None:
     status = job.result.upper() if job.result == "failed" else job.result
     package = job.settings["BATS_PACKAGE"]
     name = EXTRA.sub("", job.name)
-    print(f"{status:10}  {package:10}  {job.url:<42}  {name}")
+    print(f"{status:10}  {package:13}  {job.url:<42}  {name}")
     if verbose:
         print_passed(job)
         if status != "passed":

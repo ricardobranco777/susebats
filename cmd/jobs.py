@@ -116,7 +116,11 @@ def print_comments(job: Job) -> None:
     """
     for comment in job.comments:
         if comment.text.startswith(
-            ("Automatic investigation jobs", "Investigate retry job")
+            (
+                "Automatic bisect jobs",
+                "Automatic investigation jobs",
+                "Investigate retry job",
+            )
         ):
             continue
         for bugref in comment.issues:

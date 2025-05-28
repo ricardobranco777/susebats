@@ -12,9 +12,7 @@ from bats.requests import get_json
 from bats.issues import GITHUB_TOKEN
 
 
-# NOTE: aardvark is repeated as aardvark-dns because we use aardvark.pm for the openQA module
 TEST_URL = {
-    "aardvark": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
     "aardvark-dns": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
     "buildah": "https://github.com/containers/buildah/blob/v{}/tests/{}.bats",
     "netavark": "https://github.com/containers/netavark/blob/v{}/test/{}.bats",

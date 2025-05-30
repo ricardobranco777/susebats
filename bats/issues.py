@@ -13,6 +13,7 @@ from bats.requests import get_json, session, TIMEOUT
 
 
 BUGZILLA_TOKEN = os.getenv("BUGZILLA_TOKEN")
+GITLAB_TOKEN = os.getenv("GITLAB_TOKEN")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
 JIRA_TOKEN = os.getenv("JIRA_TOKEN")
 REDMINE_TOKEN = os.getenv("REDMINE_TOKEN")
@@ -87,6 +88,26 @@ def get_github_issue(repo: str, issue: int) -> Issue | None:
     return Issue(url=url, title=data["title"])
 
 
+def get_gitlab_issue(url: str) -> Issue | None:
+    """
+    Get GitLab issue
+    """
+    url = url.replace("/-/", "/")
+    urlx = urlparse(url)
+    issues = "issues" if "/issues/" in url else "merge_requests"
+    repo, issue = urlx.path[1:].split(f"/{issues}/")
+    repo = repo.replace("/", "%2F", 1)
+    api_url = f"{urlx.scheme}://{urlx.netloc}/api/v4/projects/{repo}/{issues}/{issue}"
+    headers = {}
+    if urlx.netloc == "gitlab.suse.de":
+        headers["PRIVATE-TOKEN"] = GITLAB_TOKEN
+    data = get_json(api_url, headers=headers)
+    if data is None:
+        return None
+    assert isinstance(data, dict)
+    return Issue(url=url, title=data["title"])
+
+
 def get_jira_issue(url: str) -> Issue | None:
     """
     Get Jira issue
@@ -130,6 +151,7 @@ def get_issue(tag: str) -> Issue | None:  # pylint: disable=too-many-return-stat
         "bsc": "bugzilla.suse.com",
         "boo": "bugzilla.opensuse.org",
         "gh": "github.com",
+        "gsd": "gitlab.suse.de",
         "jsc": "jira.suse.com",
         "poo": "progress.opensuse.org",
         "ssd": "src.suse.de",
@@ -161,6 +183,8 @@ def get_issue(tag: str) -> Issue | None:  # pylint: disable=too-many-return-stat
         return get_github_issue(repo, int(issue))
     if host.startswith("src."):
         return get_gitea_issue(tag)
+    if "gitlab" in host:
+        return get_gitlab_issue(tag)
     if "jira" in host:
         url = f"https://{host}/browse/{issue}"
         return get_jira_issue(url)

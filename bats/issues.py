@@ -158,7 +158,7 @@ def get_issue(tag: str) -> Issue | None:  # pylint: disable=too-many-return-stat
         "soo": "src.opensuse.org",
     }
 
-    repo = ""
+    repo = url = ""
     if tag.startswith("https://"):
         url = tag
         host: str | None = urlparse(url).netloc
@@ -172,7 +172,6 @@ def get_issue(tag: str) -> Issue | None:  # pylint: disable=too-many-return-stat
     if host is None:
         return Issue(url="", title=tag)
 
-    url = ""
     if host.startswith("bugzilla"):
         url = f"https://{host}/show_bug.cgi?id={issue}"
         return get_bugzilla_issue(url)
@@ -182,9 +181,11 @@ def get_issue(tag: str) -> Issue | None:  # pylint: disable=too-many-return-stat
     if host.endswith("github.com"):
         return get_github_issue(repo, int(issue))
     if host.startswith("src."):
-        return get_gitea_issue(tag)
+        url = url or f"https://{host}/{repo}/issues/{issue}"
+        return get_gitea_issue(url)
     if "gitlab" in host:
-        return get_gitlab_issue(tag)
+        url = url or f"https://{host}/{repo}/-/issues/{issue}"
+        return get_gitlab_issue(url)
     if "jira" in host:
         url = f"https://{host}/browse/{issue}"
         return get_jira_issue(url)

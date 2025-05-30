@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 List skipped BATS tests on all schedules
 """

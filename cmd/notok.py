@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Generate BATS_SKIP variables from an openQA job URL
 """

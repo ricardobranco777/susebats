@@ -105,17 +105,24 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
     if full and info["result"] == "failed":
         api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}/comments"
         data = get_json(api_url)
-        if data is not None:
-            comments = [
+        if data is None:
+            return None
+        comments = []
+        for item in data:
+            issues = []
+            if item["bugrefs"]:
+                issues = list(filter(None, (get_issue(b) for b in item["bugrefs"])))
+            elif item["text"].startswith("https://"):
+                issues = list(filter(None, [get_issue(item["text"].split()[0])]))
+            comments.append(
                 Comment(
                     author=item["userName"],
                     created=datetime.fromisoformat(item["created"]).astimezone(),
                     updated=datetime.fromisoformat(item["updated"]).astimezone(),
                     text=item["text"].replace("\r", "").replace("\n", " ").strip(),
-                    issues=list(filter(None, (get_issue(b) for b in item["bugrefs"]))),
+                    issues=issues,
                 )
-                for item in data
-            ]
+            )
 
     return Job(
         name=info["name"],

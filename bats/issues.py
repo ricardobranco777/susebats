@@ -5,7 +5,7 @@ Services module
 import os
 import sys
 from dataclasses import dataclass
-from urllib.parse import urljoin
+from urllib.parse import urljoin, urlparse
 
 from requests.exceptions import RequestException
 
@@ -54,6 +54,21 @@ def get_bugzilla_issue(url: str) -> Issue | None:
         print(f"ERROR: {url}: {error}", file=sys.stderr)
         return None
     return Issue(url=url, title=data[0]["summary"])
+
+
+def get_gitea_issue(url: str) -> Issue | None:
+    """
+    Get Gitea issue
+    """
+    urlx = urlparse(url)
+    issues = "issues" if "/issues/" in url else "pulls"
+    repo, issue = urlx.path[1:].split(f"/{issues}/")
+    api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/repos/{repo}/{issues}/{issue}"
+    data = get_json(api_url)
+    if data is None:
+        return None
+    assert isinstance(data, dict)
+    return Issue(url=url, title=data["title"])
 
 
 def get_github_issue(repo: str, issue: int) -> Issue | None:
@@ -107,7 +122,7 @@ def get_redmine_issue(url: str) -> Issue | None:
     return Issue(url=url, title=data["subject"])
 
 
-def get_issue(tag: str) -> Issue | None:
+def get_issue(tag: str) -> Issue | None:  # pylint: disable=too-many-return-statements
     """
     Get issue from tag
     """
@@ -117,14 +132,21 @@ def get_issue(tag: str) -> Issue | None:
         "gh": "github.com",
         "jsc": "jira.suse.com",
         "poo": "progress.opensuse.org",
+        "ssd": "src.suse.de",
+        "soo": "src.opensuse.org",
     }
 
     repo = ""
-    try:
-        code, repo, issue = tag.split("#", 2)
-    except ValueError:
-        code, issue = tag.split("#", 1)
-    host = tag_to_host.get(code)
+    if tag.startswith("https://"):
+        url = tag
+        host: str | None = urlparse(url).netloc
+        issue = os.path.basename(tag)
+    else:
+        try:
+            code, repo, issue = tag.split("#", 2)
+        except ValueError:
+            code, issue = tag.split("#", 1)
+        host = tag_to_host.get(code)
     if host is None:
         return Issue(url="", title=tag)
 
@@ -137,6 +159,8 @@ def get_issue(tag: str) -> Issue | None:
         return get_redmine_issue(url)
     if host.endswith("github.com"):
         return get_github_issue(repo, int(issue))
+    if host.startswith("src."):
+        return get_gitea_issue(tag)
     if "jira" in host:
         url = f"https://{host}/browse/{issue}"
         return get_jira_issue(url)

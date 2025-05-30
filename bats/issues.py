@@ -14,6 +14,7 @@ from bats.requests import get_json, session, TIMEOUT
 
 BUGZILLA_TOKEN = os.getenv("BUGZILLA_TOKEN")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")
+JIRA_TOKEN = os.getenv("JIRA_TOKEN")
 REDMINE_TOKEN = os.getenv("REDMINE_TOKEN")
 
 
@@ -71,9 +72,29 @@ def get_github_issue(repo: str, issue: int) -> Issue | None:
     return Issue(url=url, title=data["title"])
 
 
+def get_jira_issue(url: str) -> Issue | None:
+    """
+    Get Jira issue
+    """
+    if not JIRA_TOKEN:
+        return None
+    issue = os.path.basename(url)
+    api_url = "https://jira.suse.com/rest/api/2/search"
+    headers = {"Authorization": f"Bearer {JIRA_TOKEN}"}
+    params = {
+        "fields": "summary",
+        "jql": f"key in ({issue})",
+    }
+    data = get_json(api_url, headers=headers, params=params, key="issues")
+    if data is None:
+        return None
+    assert isinstance(data, list)
+    return Issue(url=url, title=data[0]["fields"]["summary"])
+
+
 def get_redmine_issue(url: str) -> Issue | None:
     """
-    Get Redmine issues
+    Get Redmine issue
     """
     if not REDMINE_TOKEN:
         return None
@@ -94,6 +115,7 @@ def get_issue(tag: str) -> Issue | None:
         "bsc": "bugzilla.suse.com",
         "boo": "bugzilla.opensuse.org",
         "gh": "github.com",
+        "jsc": "jira.suse.com",
         "poo": "progress.opensuse.org",
     }
 
@@ -115,4 +137,7 @@ def get_issue(tag: str) -> Issue | None:
         return get_redmine_issue(url)
     if host.endswith("github.com"):
         return get_github_issue(repo, int(issue))
+    if "jira" in host:
+        url = f"https://{host}/browse/{issue}"
+        return get_jira_issue(url)
     return Issue(url="", title=tag)

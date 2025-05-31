@@ -10,4 +10,4 @@ if [ "$1" = "--version" ] ; then
 	fi
 fi
 
-exec "$DOCKER" run --rm -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"
+exec "$DOCKER" run --rm -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e JIRA_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"

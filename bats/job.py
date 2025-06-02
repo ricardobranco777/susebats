@@ -102,7 +102,7 @@ def get_job(url: str, full: bool = False, previous: bool = False) -> Job | None:
         )
 
     comments: list[Comment] = []
-    if full and info["result"] == "failed":
+    if full and info["result"] != "passed":
         api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}/comments"
         data = get_json(api_url)
         if data is None:

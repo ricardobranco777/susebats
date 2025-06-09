@@ -45,6 +45,7 @@ def main_jobs(args: argparse.Namespace) -> None:
     with ThreadPoolExecutor(max_workers=len(repos)) as executor:
         for results in executor.map(get_urls, repos):
             urls.extend(results)
+    urls.sort()
 
     build = args.build
     if build and build.startswith("-") and len(build) < 8 and build[1:].isdigit():

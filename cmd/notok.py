@@ -79,4 +79,7 @@ def print_settings(tap_files: list[str]) -> None:
     """
     info = process_files(tap_files)
     for key, value in info.items():
-        print("   ", f"{key}:", value)
+        if value:
+            print(f"    {key}:", value)
+        else:
+            print(f"    {key}:")

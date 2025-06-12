@@ -17,8 +17,10 @@ TEST_URL = {
     "buildah": "https://github.com/containers/buildah/blob/v{}/tests/{}.bats",
     "netavark": "https://github.com/containers/netavark/blob/v{}/test/{}.bats",
     "podman": "https://github.com/containers/podman/blob/v{}/test/system/{}.bats",
+    "podman-tui": "https://github.com/containers/podman-tui/blob/v{}/test/{}.bats",
     "runc": "https://github.com/opencontainers/runc/blob/v{}/tests/integration/{}.bats",
     "skopeo": "https://github.com/containers/skopeo/blob/v{}/systemtest/{}.bats",
+    "umoci": "https://github.com/opencontainers/umoci/blob/v{}/test/{}.bats",
 }
 
 

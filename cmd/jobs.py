@@ -12,7 +12,7 @@ from bats.requests import ping
 from bats.job import get_job, Job
 
 
-EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite@.*$")
+EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite.*$")
 TIMING = re.compile(r" in \d+ms(?: # .*)?$")
 
 
@@ -71,6 +71,9 @@ def print_job(job: Job, verbose: bool = False) -> None:
     """
     status = job.result.upper() if job.result == "failed" else job.result
     package = job.settings["BATS_PACKAGE"]
+    runtime = job.settings.get("OCI_RUNTIME", "")
+    if runtime:
+        package = f"{package}+{runtime}"
     name = EXTRA.sub("", job.name)
     print(f"{status:10}  {package:13}  {job.url:<42}  {name}")
     if verbose:

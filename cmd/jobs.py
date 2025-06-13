@@ -125,6 +125,7 @@ def print_comments(job: Job) -> None:
                 "Automatic bisect jobs",
                 "Automatic investigation jobs",
                 "Investigate retry job",
+                "Restarting because RETRY is set",
             )
         ):
             continue

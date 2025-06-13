@@ -70,6 +70,7 @@ def print_job(job: Job, verbose: bool = False) -> None:
     Print job
     """
     status = job.result.upper() if job.result == "failed" else job.result
+    status = status.split("_")[-1]
     package = job.settings["BATS_PACKAGE"]
     runtime = job.settings.get("OCI_RUNTIME", "")
     if runtime:

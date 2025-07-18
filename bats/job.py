@@ -42,13 +42,23 @@ class Job:  # pylint: disable=too-many-instance-attributes
     comments: list[Comment]
 
 
-def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | None:
+def get_job_id(url: str, params: dict[str, list[str]]) -> int | None:
     """
     Get job ID from URL with no job ID in URL
     """
     urlx = urlparse(url)
     if not urlx.query:
         return int(os.path.basename(urlx.path).removeprefix("t"))
+
+    if urlx.netloc == "openqa.opensuse.org" and "build" not in params:
+        # Get build number
+        api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/"
+        data = get_json(api_url, params=params, key="jobs")
+        if data is None:
+            return None
+        for job in reversed(data):
+            if job["settings"]["BUILD"].isdigit():
+                return job["id"]
 
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/overview"
     data = get_json(api_url, params=params)

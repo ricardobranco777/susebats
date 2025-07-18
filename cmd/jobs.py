@@ -7,9 +7,9 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 
-from bats.repos import REPOS, build_url, get_urls
-from bats.requests import ping
 from bats.job import get_job, Job
+from bats.repos import REPOS, get_urls
+from bats.requests import ping
 
 
 EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite.*$")
@@ -56,11 +56,11 @@ def main_jobs(args: argparse.Namespace) -> None:
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
             lambda u: get_job(
-                build_url(u, build), full=args.verbose, previous=args.previous
+                u, full=args.verbose, previous=args.previous, build=build
             ),
             urls,
         ):
-            if job is None or build and not job.settings["BUILD"].startswith(build):
+            if job is None:
                 continue
             print_job(job, verbose=args.verbose)
 

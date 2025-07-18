@@ -131,15 +131,3 @@ def get_urls(repo: str) -> list[str]:
     Get URL's from YAML schedules in repo
     """
     return [test.url for test in get_tests(repo)]
-
-
-def build_url(url: str, build: str | None) -> str:
-    """
-    Append build to url
-    """
-    if not build:
-        return url
-    # Append "-1" to aggregate tests in o.s.d
-    if "openqa.suse.de" in url and build.isdigit():
-        build = f"{build}-1"
-    return f"{url}&build={build}"

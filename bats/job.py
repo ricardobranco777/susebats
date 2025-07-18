@@ -3,10 +3,9 @@ Job module
 """
 
 import os
-import sys
 from dataclasses import dataclass
 from datetime import datetime
-from urllib.parse import parse_qs, urlencode, urljoin, urlparse
+from urllib.parse import parse_qs, urljoin, urlparse
 
 from bats.issues import get_issue, Issue
 from bats.requests import get_json
@@ -56,8 +55,6 @@ def get_job_id(url: str, params: dict[str, list[str]] | None = None) -> int | No
     if data is None:
         return None
     if len(data) != 1:
-        api_url = f"{api_url}?" + urlencode(params, doseq=True)  # type: ignore
-        print(f"ERROR: {api_url} FAILED for {url}", file=sys.stderr)
         return None
 
     return data[0]["id"]

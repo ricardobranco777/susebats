@@ -53,7 +53,7 @@ def get_job_id(url: str, params: dict[str, list[str]], build: str = "") -> int |
     # Get build number
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/"
     data = get_json(api_url, params=params, key="jobs")
-    if data is None:
+    if data is None or len(data) == 0:
         return None
     if not build:
         return data[-1]["id"]

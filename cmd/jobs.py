@@ -69,14 +69,15 @@ def print_job(job: Job, verbose: bool = False) -> None:
     """
     Print job
     """
-    status = job.result.upper() if job.result == "failed" else job.result
-    status = status.split("_")[-1]
+    arch = job.settings["ARCH"]
+    name = EXTRA.sub("", job.name)
     package = job.settings["BATS_PACKAGE"]
     runtime = job.settings.get("OCI_RUNTIME", "")
     if runtime:
         package = f"{package}+{runtime}"
-    name = EXTRA.sub("", job.name)
-    print(f"{status:10}  {package:13}  {job.url:<42}  {name}")
+    status = job.result.upper() if job.result == "failed" else job.result
+    status = status.split("_")[-1]
+    print(f"{status:10}  {package:13}  {arch:7}  {job.url:<42}  {name}")
     if verbose:
         print_passed(job)
         if status != "passed":

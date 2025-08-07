@@ -80,6 +80,8 @@ def print_job(job: Job, verbose: bool = False) -> None:
     print(f"{status:10}  {package:13}  {arch:7}  {job.url:<42}  {name}")
     if verbose:
         print_passed(job)
+        for core in (log for log in job.logs if ".core" in log):
+            print(f"\tcore: {core}")
         if status != "passed":
             print_results(job)
             print_comments(job)

@@ -63,7 +63,7 @@ def get_job_id(url: str, params: dict[str, list[str]], build: str = "") -> int |
     return None
 
 
-def get_job(  # pylint: disable=too-many-locals
+def get_job(  # pylint: disable=too-many-branches,too-many-locals
     url: str, full: bool = False, previous: bool = False, build: str = ""
 ) -> Job | None:
     """
@@ -94,7 +94,9 @@ def get_job(  # pylint: disable=too-many-locals
     for key in ("clone_id", "origin_id"):
         info[key] = urljoin(url, str(info[key])) if info.get(key) else ""
 
-    logs = [urljoin(f"{url}/", f"file/{log}") for log in info.get("ulogs", [])]
+    logs = []
+    for key in ("logs", "ulogs"):
+        logs.extend([urljoin(f"{url}/", f"file/{log}") for log in info.get(key, [])])
 
     seconds = -1
     if info["t_started"] and info["t_finished"]:

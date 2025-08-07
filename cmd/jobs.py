@@ -82,6 +82,9 @@ def print_job(job: Job, verbose: bool = False) -> None:
         print_passed(job)
         for core in (log for log in job.logs if ".core" in log):
             print(f"\tcore: {core}")
+        if "Call Trace:" in job.serial_log:
+            serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
+            print(f"\ttrace: {serial0}")
         if status != "passed":
             print_results(job)
             print_comments(job)

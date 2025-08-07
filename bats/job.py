@@ -8,7 +8,7 @@ from datetime import datetime
 from urllib.parse import parse_qs, urljoin, urlparse
 
 from bats.issues import get_issue, Issue
-from bats.requests import get_json
+from bats.requests import get_file, get_json
 
 
 @dataclass(frozen=True)
@@ -40,6 +40,7 @@ class Job:  # pylint: disable=too-many-instance-attributes
     results: list[dict]
     settings: dict[str, str]
     comments: list[Comment]
+    serial_log: str
 
 
 def get_job_id(url: str, params: dict[str, list[str]], build: str = "") -> int | None:
@@ -130,6 +131,16 @@ def get_job(  # pylint: disable=too-many-branches,too-many-locals
                 )
             )
 
+    serial_log: str | None = ""
+    if full:
+        try:
+            serial0 = [log for log in logs if log.endswith("serial0.txt")].pop()
+        except IndexError:
+            pass
+        else:
+            serial_log = get_file(serial0)
+    serial_log = serial_log or ""
+
     return Job(
         name=info["name"],
         url=url,
@@ -141,4 +152,5 @@ def get_job(  # pylint: disable=too-many-branches,too-many-locals
         results=info.get("testresults", []),
         settings=info["settings"],
         comments=comments,
+        serial_log=serial_log,
     )

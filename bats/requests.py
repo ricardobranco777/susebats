@@ -47,6 +47,19 @@ def download_file(url: str) -> str | None:
     return filename
 
 
+def get_file(url: str) -> str | None:
+    """
+    Download a text file and return its contents
+    """
+    try:
+        with session.get(url, timeout=TIMEOUT) as r:
+            r.raise_for_status()
+            return r.text
+    except RequestException as error:
+        print(f"ERROR: {url}: {error}", file=sys.stderr)
+    return None
+
+
 def get_json(
     url: str,
     headers: dict | None = None,

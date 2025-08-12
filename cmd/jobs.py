@@ -10,6 +10,7 @@ from datetime import datetime, timedelta
 from bats.job import get_job, Job
 from bats.repos import REPOS, get_urls
 from bats.requests import ping
+from bats.utils import get_traces
 
 
 EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite.*$")
@@ -106,16 +107,7 @@ def print_traces(job: Job) -> None:
     """
     Print traces recorded by `record_info("TRACE", $trace)`
     """
-    traces = [
-        detail["text_data"]
-        for result in job.results
-        for detail in result["details"]
-        if "title" in detail and detail["title"] == "TRACE"
-    ]
-    package = job.settings["BATS_PACKAGE"]
-    # Ignore OOM failures in runc since these are expected
-    if package == "runc":
-        traces = list(filter(lambda t: "mem_cgroup_out_of_memory" not in t, traces))
+    traces = get_traces(job)
     if len(traces) > 0:
         serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
         print(f"\ttraces: {serial0}")

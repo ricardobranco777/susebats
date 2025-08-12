@@ -10,9 +10,10 @@ import tempfile
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 
-from bats.job import get_job
+from bats.job import get_job, Job
 from bats.requests import download_file
 from bats.tap import grep_notok
+from bats.utils import get_traces
 
 
 TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.tap$"
@@ -58,6 +59,7 @@ def main_notok(args: argparse.Namespace) -> None:
 
         if args.verbose:
             print_failures(downloaded_files, verbose=args.verbose > 1)
+            print_traces(job)
         else:
             print_settings(downloaded_files)
 
@@ -71,6 +73,14 @@ def print_failures(tap_files: list[str], verbose: bool = False) -> None:
         for test in failed:
             print(file, test.url)
             print("\n" + "\n".join(test.lines) + "\n")
+
+
+def print_traces(job: Job) -> None:
+    """
+    Print traces recorded by `record_info("TRACE", $trace)`
+    """
+    for trace in get_traces(job):
+        print(trace)
 
 
 def print_settings(tap_files: list[str]) -> None:

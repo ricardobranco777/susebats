@@ -16,7 +16,7 @@ from bats.tap import grep_notok
 from bats.utils import get_traces
 
 
-TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.tap$"
+TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.tap(?:\.txt)?$"
 
 
 def process_files(files: list[str]) -> dict[str, str]:
@@ -49,7 +49,7 @@ def main_notok(args: argparse.Namespace) -> None:
     if job is None:
         sys.exit(f"ERROR: {args.url}")
 
-    tap_logs = [log for log in job.logs if log.endswith(".tap")]
+    tap_logs = [log for log in job.logs if log.endswith((".tap", ".tap.txt"))]
     if not tap_logs:
         sys.exit(f"ERROR: {args.url}: No .tap logs")
 

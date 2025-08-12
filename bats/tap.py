@@ -80,7 +80,7 @@ def list_files(package: str, version: str) -> list[str]:
 
 def grep_notok(file: str, ignored: bool = False) -> list[Test]:
     """
-    Find the failed tests in a .tap file
+    Find the failed tests in a TAP file
     """
     with open(file, encoding="utf-8") as f:
         lines = f.read().splitlines()

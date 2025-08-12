@@ -112,6 +112,10 @@ def print_traces(job: Job) -> None:
         for detail in result["details"]
         if "title" in detail and detail["title"] == "TRACE"
     ]
+    package = job.settings["BATS_PACKAGE"]
+    # Ignore OOM failures in runc since these are expected
+    if package == "runc":
+        traces = list(filter(lambda t: "mem_cgroup_out_of_memory" not in t, traces))
     if len(traces) > 0:
         serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
         print(f"\ttraces: {serial0}")

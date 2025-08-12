@@ -80,11 +80,9 @@ def print_job(job: Job, verbose: bool = False) -> None:
     print(f"{status:10}  {package:13}  {arch:7}  {job.url:<42}  {name}")
     if verbose:
         print_passed(job)
+        print_traces(job)
         for core in (log for log in job.logs if ".core" in log):
             print(f"\tcore: {core}")
-        if "Call Trace:" in job.serial_log:
-            serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
-            print(f"\ttrace: {serial0}")
         if status != "passed":
             print_results(job)
             print_comments(job)
@@ -101,7 +99,22 @@ def print_passed(job: Job) -> None:
         if "title" in detail and detail["title"] == "PASS"
     }
     if len(passed) > 0:
-        print("\tPASSED:\t", " ".join(list(sorted(passed))))
+        print("\tpassed:\t", " ".join(list(sorted(passed))))
+
+
+def print_traces(job: Job) -> None:
+    """
+    Print traces recorded by `record_info("TRACE", $trace)`
+    """
+    traces = [
+        detail["text_data"]
+        for result in job.results
+        for detail in result["details"]
+        if "title" in detail and detail["title"] == "TRACE"
+    ]
+    if len(traces) > 0:
+        serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
+        print(f"\ttraces: {serial0}")
 
 
 def print_results(job: Job) -> None:

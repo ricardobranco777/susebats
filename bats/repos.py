@@ -34,14 +34,14 @@ class Test:
 
 
 def find_tests(
-    file: io.TextIOWrapper,
+    buf: str,
     match: Callable,
 ) -> list[Test]:
     """
     Find tests in YAML schedule with settings containing "BATS_PACKAGE"
     """
     try:
-        data = yaml.safe_load(file)
+        data = yaml.safe_load(buf)
     except yaml.YAMLError:
         return []
 
@@ -76,7 +76,7 @@ def grep_tarball(
     url: str,
     file_pattern: str,
     ignore_pattern: str | None = None,
-) -> Iterator[io.TextIOWrapper]:
+) -> Iterator[tuple[str, str]]:
     """
     Downloads a tarball and return the content of files
     """
@@ -100,7 +100,7 @@ def grep_tarball(
                 if fnmatch(elem.name, file_pattern):
                     file = tar.extractfile(elem)
                     if file is not None:
-                        yield io.TextIOWrapper(io.BytesIO(file.read()))
+                        yield elem.name, file.read().decode()
     except tarfile.ReadError as error:
         # May fail because GITLAB_TOKEN is not set
         print(f"ERROR: {url}: {error}", file=sys.stderr)
@@ -119,8 +119,8 @@ def get_tests(repo: str) -> list[Test]:
     """
     tests = [
         test
-        for file in grep_tarball(repo, "*.yaml")
-        for test in find_tests(file, match=bats_test)
+        for file, data in grep_tarball(repo, "*.yaml")
+        for test in find_tests(data, match=bats_test)
     ]
     tests.sort()
     return tests

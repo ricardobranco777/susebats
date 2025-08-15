@@ -51,6 +51,9 @@ def main() -> None:
         help="generate BATS_SKIP variables from an openQA job URL",
     )
     parser_notok.add_argument(
+        "-s", "--skipped", action="count", help="print only skipped tests"
+    )
+    parser_notok.add_argument(
         "-v", "--verbose", action="count", help="may be specified more than once"
     )
     parser_notok.add_argument("url", help="openQA job")

@@ -12,7 +12,7 @@ from functools import reduce
 
 from bats.job import get_job, Job
 from bats.requests import download_file
-from bats.tap import grep_notok
+from bats.tap import grep_notok, grep_skipped
 from bats.utils import get_traces
 
 
@@ -57,7 +57,9 @@ def main_notok(args: argparse.Namespace) -> None:
         with ThreadPoolExecutor(max_workers=len(tap_logs)) as executor:
             downloaded_files = list(filter(None, executor.map(download_file, tap_logs)))
 
-        if args.verbose:
+        if args.skipped:
+            print_skipped(downloaded_files)
+        elif args.verbose:
             print_failures(downloaded_files, verbose=args.verbose > 1)
             print_traces(job)
         else:
@@ -73,6 +75,17 @@ def print_failures(tap_files: list[str], verbose: bool = False) -> None:
         for test in failed:
             print(file, test.url)
             print("\n" + "\n".join(test.lines) + "\n")
+
+
+def print_skipped(tap_files: list[str]) -> None:
+    """
+    Print skipped tests
+    """
+    for file in tap_files:
+        print(file)
+        skipped = grep_skipped(file)
+        for line in skipped:
+            print(f"\t{line}")
 
 
 def print_traces(job: Job) -> None:

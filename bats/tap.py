@@ -131,3 +131,17 @@ def grep_notok(file: str, ignored: bool = False) -> list[Test]:
         if t.lines[0].startswith("not ok")
         or (t.lines[0].startswith("#not ok") and ignored)
     ]
+
+
+def grep_skipped(file: str) -> list[str]:
+    """
+    Find the skipped tests in a TAP file
+    """
+    with open(file, encoding="utf-8") as f:
+        lines = f.read().splitlines()
+
+    skipped = []
+    for line in lines:
+        if line.startswith("ok") and "# skip" in line:
+            skipped.append(line)
+    return skipped

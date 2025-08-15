@@ -85,6 +85,7 @@ positional arguments:
 options:
   -h, --help     show this help message and exit
   -s, --skipped  print only skipped tests
+  -t, --timing   print timing analysis
   -v, --verbose  may be specified more than once
 
 positional arguments:

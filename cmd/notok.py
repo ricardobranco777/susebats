@@ -12,7 +12,7 @@ from functools import reduce
 
 from bats.job import get_job, Job
 from bats.requests import download_file
-from bats.tap import grep_notok, grep_skipped
+from bats.tap import get_timings, grep_notok, grep_skipped
 from bats.utils import get_traces
 
 
@@ -59,6 +59,8 @@ def main_notok(args: argparse.Namespace) -> None:
 
         if args.skipped:
             print_skipped(downloaded_files)
+        elif args.timing:
+            print_timings(downloaded_files)
         elif args.verbose:
             print_failures(downloaded_files, verbose=args.verbose > 1)
             print_traces(job)
@@ -86,6 +88,17 @@ def print_skipped(tap_files: list[str]) -> None:
         skipped = grep_skipped(file)
         for line in skipped:
             print(f"\t{line}")
+
+
+def print_timings(tap_files: list[str]) -> None:
+    """
+    Print timings
+    """
+    for file in tap_files:
+        print("#", file)
+        timings = get_timings(file)
+        for test, msecs in timings:
+            print(msecs, test, sep="\t")
 
 
 def print_traces(job: Job) -> None:

@@ -24,6 +24,9 @@ TEST_URL = {
 }
 
 
+TIMING = re.compile(r"^(?:#?not )?ok \d+ (?:\[\d+\] )?(.*) in (\d+)ms(?: # .*)?$")
+
+
 @dataclass(frozen=True)
 class Test:
     """
@@ -145,3 +148,20 @@ def grep_skipped(file: str) -> list[str]:
         if line.startswith("ok") and "# skip" in line:
             skipped.append(line)
     return skipped
+
+
+def get_timings(file: str) -> list[tuple[str, int]]:
+    """
+    Return the time it takes each test
+    """
+    with open(file, encoding="utf-8") as f:
+        lines = f.read().splitlines()
+
+    timings: list[tuple[str, int]] = []
+    for line in lines:
+        match = TIMING.findall(line)
+        if not match:
+            continue
+        test, msecs = match[0]
+        timings.append((test, int(msecs)))
+    return timings

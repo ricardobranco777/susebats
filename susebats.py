@@ -54,6 +54,9 @@ def main() -> None:
         "-s", "--skipped", action="count", help="print only skipped tests"
     )
     parser_notok.add_argument(
+        "-t", "--timing", action="count", help="print timing analysis"
+    )
+    parser_notok.add_argument(
         "-v", "--verbose", action="count", help="may be specified more than once"
     )
     parser_notok.add_argument("url", help="openQA job")

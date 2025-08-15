@@ -13,7 +13,7 @@ positional arguments:
   {jobs,list,notok,versions}
     jobs                list BATS jobs in o.s.d & o3
     list                list skipped BATS tests per product
-    notok               generate BATS_SKIP variables from an openQA job URL
+    notok               generate BATS_IGNORE variables from an openQA job URL
 
 options:
   -h, --help            show this help message and exit
@@ -74,7 +74,7 @@ opensuse-Tumbleweed-DVD-x86_64	https://openqa.opensuse.org/tests/latest?distri=o
 
 ## susebats notok
 
-Generate `BATS_SKIP` variables from an openQA job URL
+Generate `BATS_IGNORE` variables from an openQA job URL
 
 ```
 usage: susebats notok [-h] [-v] url
@@ -96,5 +96,5 @@ Example:
 ```
  susebats notok https://openqa.opensuse.org/tests/5037129
   BATS_PACKAGE: 'aardvark'
-  BATS_SKIP: '100-basic-name-resolution 200-two-networks 300-three-networks'
+  BATS_IGNORE: '100-basic-name-resolution 200-two-networks 300-three-networks'
 ```

@@ -48,7 +48,7 @@ def main() -> None:
 
     parser_notok = subparsers.add_parser(
         "notok",
-        help="generate BATS_SKIP variables from an openQA job URL",
+        help="generate BATS_IGNORE variables from an openQA job URL",
     )
     parser_notok.add_argument(
         "-s", "--skipped", action="count", help="print only skipped tests"

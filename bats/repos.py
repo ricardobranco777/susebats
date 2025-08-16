@@ -7,7 +7,7 @@ import os
 import sys
 import tarfile
 from dataclasses import dataclass, field
-from fnmatch import fnmatch
+from pathlib import PurePath
 from typing import Callable, Iterator
 from urllib.parse import urlencode
 
@@ -95,9 +95,9 @@ def grep_tarball(
             for elem in tar.getmembers():
                 if not elem.isfile():
                     continue
-                if ignore_pattern and fnmatch(elem.name, ignore_pattern):
+                if ignore_pattern and PurePath(elem.name).match(ignore_pattern):
                     continue
-                if fnmatch(elem.name, file_pattern):
+                if PurePath(elem.name).match(file_pattern):
                     file = tar.extractfile(elem)
                     if file is not None:
                         yield elem.name, file.read().decode()

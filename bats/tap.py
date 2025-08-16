@@ -4,10 +4,14 @@ tap module
 
 import fnmatch
 import re
+import os
 import sys
+from collections import defaultdict
+from copy import deepcopy
 from dataclasses import dataclass
 from functools import cache
 
+from bats.repos import grep_tarball
 from bats.requests import get_json
 from bats.issues import GITHUB_TOKEN
 
@@ -23,6 +27,7 @@ TESTS_DIR = {
     "umoci": "test",
 }
 
+BATS_TEST = re.compile(r'^@test\s+"?(.*)"\s+{$')
 
 TIMING = re.compile(r"^(?:#?not )?ok \d+ (?:\[\d+\] )?(.*) in (\d+)ms(?: # .*)?$")
 
@@ -152,18 +157,63 @@ def grep_skipped(file: str) -> list[str]:
     return skipped
 
 
-def get_timings(file: str) -> list[tuple[str, int]]:
+@cache
+def get_tests(package: str, version: str) -> dict[str, list[str]]:
+    """
+    Get tests from package
+    """
+    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
+    tarball = (
+        f"https://github.com/{github_org}/{package}/archive/refs/tags/v{version}.tar.gz"
+    )
+    tests_dir = TESTS_DIR[package]
+
+    tests: dict[str, list[str]] = defaultdict(list)
+    for file, data in grep_tarball(tarball, f"{tests_dir}/*.bats"):
+        lines = data.splitlines()
+        for line in lines:
+            match = BATS_TEST.findall(line)
+            if not match:
+                continue
+            test = match[0]
+            # We use list.insert() instead of list.append()
+            # because we'll use list.pop()
+            tests[test].insert(0, file)
+            tests[test].append(file)
+    return tests
+
+
+def get_timings(file: str) -> dict[str, list[tuple[str, int]]]:
     """
     Return the time it takes each test
     """
     with open(file, encoding="utf-8") as f:
         lines = f.read().splitlines()
 
-    timings: list[tuple[str, int]] = []
+    # Second line may be like this: "# package version release DISTRI VERSION BUILD ARCH"
+    # podman 5.4.2 1.1 opensuse Tumbleweed 20250426 x86_64
+    package = version = ""
+    try:
+        _, package, version, *_ = lines[1].split()
+    except ValueError:
+        pass
+
+    # We need a deepcopy because we use list.pop()
+    tests = deepcopy(get_tests(package, version))
+    file = ""
+
+    timings: dict[str, list[tuple[str, int]]] = defaultdict(list)
     for line in lines:
         match = TIMING.findall(line)
         if not match:
             continue
         test, msecs = match[0]
-        timings.append((test, int(msecs)))
+        try:
+            file = os.path.basename(tests[test].pop()).removesuffix(".bats")
+        except IndexError:
+            # Some test descriptions have shell $variables so use the previous filename
+            if not file:
+                # Assume first test file by default
+                file = list(tests.keys())[0]
+        timings[file].append((test, int(msecs)))
     return timings

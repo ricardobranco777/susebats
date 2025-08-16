@@ -60,7 +60,7 @@ def main_notok(args: argparse.Namespace) -> None:
         if args.skipped:
             print_skipped(downloaded_files)
         elif args.timing:
-            print_timings(downloaded_files)
+            print_timings(downloaded_files, verbose=args.verbose)
         elif args.verbose:
             print_failures(downloaded_files, verbose=args.verbose > 1)
             print_traces(job)
@@ -90,15 +90,26 @@ def print_skipped(tap_files: list[str]) -> None:
             print(f"\t{line}")
 
 
-def print_timings(tap_files: list[str]) -> None:
+def print_timings(tap_files: list[str], verbose: bool = False) -> None:
     """
     Print timings
     """
     for file in tap_files:
         print("#", file)
         timings = get_timings(file)
-        for test, msecs in timings:
-            print(msecs, test, sep="\t")
+        file_width = max(map(len, timings))
+        fmt = f"{{}}\t{{:{file_width}}}"
+        if verbose:
+            fmt += "  {}"
+        for file in timings:
+            total = 0
+            for test, msecs in timings[file]:
+                if verbose:
+                    # seconds = msecs // 1000 or 1
+                    print(fmt.format(msecs, file, test))
+                total += msecs
+            if not verbose:
+                print(fmt.format(total, file))
 
 
 def print_traces(job: Job) -> None:

@@ -12,15 +12,15 @@ from bats.requests import get_json
 from bats.issues import GITHUB_TOKEN
 
 
-TEST_URL = {
-    "aardvark-dns": "https://github.com/containers/aardvark-dns/blob/v{}/test/{}.bats",
-    "buildah": "https://github.com/containers/buildah/blob/v{}/tests/{}.bats",
-    "netavark": "https://github.com/containers/netavark/blob/v{}/test/{}.bats",
-    "podman": "https://github.com/containers/podman/blob/v{}/test/system/{}.bats",
-    "podman-tui": "https://github.com/containers/podman-tui/blob/v{}/test/{}.bats",
-    "runc": "https://github.com/opencontainers/runc/blob/v{}/tests/integration/{}.bats",
-    "skopeo": "https://github.com/containers/skopeo/blob/v{}/systemtest/{}.bats",
-    "umoci": "https://github.com/opencontainers/umoci/blob/v{}/test/{}.bats",
+TESTS_DIR = {
+    "aardvark-dns": "test",
+    "buildah": "tests",
+    "netavark": "test",
+    "podman": "test/system",
+    "podman-tui": "test",
+    "runc": "tests/integration",
+    "skopeo": "systemtest",
+    "umoci": "test",
 }
 
 
@@ -42,7 +42,8 @@ def get_url(package: str, version: str, test: str) -> str:
     """
     Get URL for test
     """
-    return TEST_URL[package].format(version, test)
+    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
+    return f"https://github.com/{github_org}/{package}/blob/v{version}/test/{test}.bats"
 
 
 @cache
@@ -51,8 +52,9 @@ def list_files(package: str, version: str) -> list[str]:
     List tests from upstream
     """
 
-    repo_regex = r"^https://github.com/(.*)/blob/v{}/(.*)/{}\.bats$"
-    repo, test_dir = re.findall(repo_regex, TEST_URL[package])[0]
+    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
+    repo = f"{github_org}/{package}"
+    test_dir = TESTS_DIR[package]
 
     tag = version
     if tag == "":

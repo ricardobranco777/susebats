@@ -101,6 +101,7 @@ def print_timings(tap_files: list[str], verbose: bool = False) -> None:
         fmt = f"{{}}\t{{:{file_width}}}"
         if verbose:
             fmt += "  {}"
+        file_total = 0
         for file in timings:
             total = 0
             for test, msecs in timings[file]:
@@ -110,6 +111,8 @@ def print_timings(tap_files: list[str], verbose: bool = False) -> None:
                 total += msecs
             if not verbose:
                 print(fmt.format(total, file))
+            file_total += total
+        print("# total: ", file_total)
 
 
 def print_traces(job: Job) -> None:

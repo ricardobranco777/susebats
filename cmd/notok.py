@@ -53,6 +53,16 @@ def main_notok(args: argparse.Namespace) -> None:
     if not logs:
         sys.exit(f"ERROR: {args.url}: No .tap logs")
 
+    # Expected number of TAP logs per package
+    expected = {
+        "aardvark-dns": 1,
+        "buildah": 2,
+        "netavark": 1,
+        "podman": 4,
+        "runc": 2,
+        "skopeo": 2,
+    }
+
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
         files = []
         if len(logs) == 1:
@@ -62,6 +72,9 @@ def main_notok(args: argparse.Namespace) -> None:
         else:
             with ThreadPoolExecutor(max_workers=len(logs)) as executor:
                 files = list(filter(None, executor.map(download_file, logs)))
+
+        if len(files) != expected[job.settings["BATS_PACKAGE"]]:
+            print(f"ERROR: Job has only {len(files)} TAP logs")
 
         if args.skipped:
             print_skipped(files)

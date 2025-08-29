@@ -49,60 +49,58 @@ def main_notok(args: argparse.Namespace) -> None:
     if job is None:
         sys.exit(f"ERROR: {args.url}")
 
-    tap_logs = [log for log in job.logs if log.endswith((".tap", ".tap.txt"))]
-    if not tap_logs:
+    logs = [log for log in job.logs if log.endswith((".tap", ".tap.txt"))]
+    if not logs:
         sys.exit(f"ERROR: {args.url}: No .tap logs")
 
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
-        downloaded_files = []
-        if len(tap_logs) == 1:
-            downloaded_file = download_file(tap_logs[0])
-            if downloaded_file is not None:
-                downloaded_files = [downloaded_file]
+        files = []
+        if len(logs) == 1:
+            file = download_file(logs[0])
+            if file is not None:
+                files = [file]
         else:
-            with ThreadPoolExecutor(max_workers=len(tap_logs)) as executor:
-                downloaded_files = list(
-                    filter(None, executor.map(download_file, tap_logs))
-                )
+            with ThreadPoolExecutor(max_workers=len(logs)) as executor:
+                files = list(filter(None, executor.map(download_file, logs)))
 
         if args.skipped:
-            print_skipped(downloaded_files)
+            print_skipped(files)
         elif args.timing:
-            print_timings(downloaded_files, verbose=args.verbose)
+            print_timings(files, verbose=args.verbose)
         elif args.verbose:
-            print_failures(downloaded_files, verbose=args.verbose > 1)
+            print_failures(files, verbose=args.verbose > 1)
             print_traces(job)
         else:
-            print_settings(downloaded_files)
+            print_settings(files)
 
 
-def print_failures(tap_files: list[str], verbose: bool = False) -> None:
+def print_failures(logs: list[str], verbose: bool = False) -> None:
     """
     Print job failures
     """
-    for file in tap_files:
+    for file in logs:
         failed = grep_notok(file, ignored=verbose)
         for test in failed:
             print(file, test.url)
             print("\n" + "\n".join(test.lines) + "\n")
 
 
-def print_skipped(tap_files: list[str]) -> None:
+def print_skipped(logs: list[str]) -> None:
     """
     Print skipped tests
     """
-    for file in tap_files:
+    for file in logs:
         print(file)
         skipped = grep_skipped(file)
         for line in skipped:
             print(f"\t{line}")
 
 
-def print_timings(tap_files: list[str], verbose: bool = False) -> None:
+def print_timings(logs: list[str], verbose: bool = False) -> None:
     """
     Print timings
     """
-    for file in tap_files:
+    for file in logs:
         print("#", file)
         timings = get_timings(file)
         file_width = max(map(len, timings))
@@ -131,11 +129,11 @@ def print_traces(job: Job) -> None:
         print(trace)
 
 
-def print_settings(tap_files: list[str]) -> None:
+def print_settings(logs: list[str]) -> None:
     """
     Print job settings
     """
-    info = process_files(tap_files)
+    info = process_files(logs)
     for key, value in info.items():
         if value:
             print(f"    {key}:", value)

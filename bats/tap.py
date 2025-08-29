@@ -88,7 +88,9 @@ def list_files(package: str, version: str) -> list[str]:
     return items
 
 
-def grep_notok(file: str, ignored: bool = False) -> list[Test]:
+def grep_notok(  # pylint: disable=too-many-branches
+    file: str, ignored: bool = False
+) -> list[Test]:
     """
     Find the failed tests in a TAP file
     """
@@ -103,12 +105,22 @@ def grep_notok(file: str, ignored: bool = False) -> list[Test]:
     except ValueError:
         pass
 
+    # Fetch the plan to check that we don't have a truncated TAP file
+    found = last = 0
+    for line in lines:
+        if line.startswith("1.."):
+            last = int(line.split("..", 1)[1])
+            break
+    if not last:
+        sys.exit(f"Malformed TAP file: {file}")
+
     test = ""
     tests = []
     buffer: list[str] = []
 
     for line in lines:
         if line.startswith(("ok", "not ok", "#not ok")):
+            found += 1
             if test and buffer:
                 tests.append(
                     Test(name=test, url=get_url(package, version, test), lines=buffer)
@@ -134,6 +146,9 @@ def grep_notok(file: str, ignored: bool = False) -> list[Test]:
             buffer.append(line)
     if test and buffer:
         tests.append(Test(name=test, url=get_url(package, version, test), lines=buffer))
+
+    if found != last:
+        sys.exit(f"Truncated TAP file: {file}")
 
     return [
         t
@@ -198,12 +213,24 @@ def get_timings(file: str) -> dict[str, list[tuple[str, int]]]:
     except ValueError:
         pass
 
+    # Fetch the plan to check that we don't have a truncated TAP file
+    found = last = 0
+    for line in lines:
+        if line.startswith("1.."):
+            last = int(line.split("..", 1)[1])
+            break
+    if not last:
+        sys.exit(f"Malformed TAP file: {file}")
+
     # We need a deepcopy because we use list.pop()
     tests = deepcopy(get_tests(package, version))
     file = ""
 
     timings: dict[str, list[tuple[str, int]]] = defaultdict(list)
     for line in lines:
+        if not line.startswith(("ok", "not ok", "#not ok")):
+            continue
+        found += 1
         match = TIMING.findall(line)
         if not match:
             continue
@@ -216,4 +243,8 @@ def get_timings(file: str) -> dict[str, list[tuple[str, int]]]:
                 # Assume first test file by default
                 file = list(tests.keys())[0]
         timings[file].append((test, int(msecs)))
+
+    if found != last:
+        sys.exit(f"Truncated TAP file: {file}")
+
     return timings

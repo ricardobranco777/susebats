@@ -57,6 +57,7 @@ def main_notok(args: argparse.Namespace) -> None:
     expected = {
         "aardvark-dns": 1,
         "buildah": 2,
+        "conmon": 2,
         "netavark": 1,
         "podman": 4,
         "runc": 2,

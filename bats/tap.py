@@ -19,6 +19,7 @@ from bats.issues import GITHUB_TOKEN
 TESTS_DIR = {
     "aardvark-dns": "test",
     "buildah": "tests",
+    "conmon": "test",
     "netavark": "test",
     "podman": "test/system",
     "podman-tui": "test",

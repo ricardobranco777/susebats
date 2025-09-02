@@ -64,6 +64,9 @@ def main_notok(args: argparse.Namespace) -> None:
         "skopeo": 2,
     }
 
+    if job.settings["DISTRI"] == "opensuse" and "OCI_RUNTIME" not in job.settings:
+        expected["conmon"] = 4
+
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
         files = []
         if len(logs) == 1:

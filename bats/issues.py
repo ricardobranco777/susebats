@@ -54,6 +54,8 @@ def get_bugzilla_issue(url: str) -> Issue | None:
         error = str(exc).split("?", maxsplit=1)[0]
         print(f"ERROR: {url}: {error}", file=sys.stderr)
         return None
+    if len(data) < 1:
+        return None
     return Issue(url=url, title=data[0]["summary"])
 
 

@@ -108,7 +108,7 @@ def get_job(  # pylint: disable=too-many-branches,too-many-locals
         )
 
     comments: list[Comment] = []
-    if full and info["result"] != "passed":
+    if full:
         api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}/comments"
         data = get_json(api_url)
         if data is None:

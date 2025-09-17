@@ -88,7 +88,7 @@ def print_job(job: Job, verbose: bool = False) -> None:
             print(f"\tcore: {core}")
         if status != "passed":
             print_results(job)
-            print_comments(job)
+        print_comments(job)
 
 
 def print_passed(job: Job) -> None:

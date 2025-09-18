@@ -30,7 +30,13 @@ TESTS_DIR = {
 
 BATS_TEST = re.compile(r'^@test\s+"?(.*)"\s+{$')
 
-TIMING = re.compile(r"^(?:#?not )?ok \d+ (?:\[\d+\] )?(.*) in (\d+)ms(?: # .*)?$")
+# We want to extract the timing information from lines like these:
+# not ok 166 bud-git-context in 118ms
+# not ok 655 [520] podman checkpoint --export, with volumes in 1558ms
+# not ok 7 runc exec (cgroup v2, ro cgroupfs, new cgroupns) does not chown cgroup # in 418 ms
+TIMING = re.compile(
+    r"^(?:#?not )?ok \d+ (?:\[\d+\] )?(.*?)\s+#?\s*in (\d+)\s*ms(?: # .*)?$"
+)
 
 
 @dataclass(frozen=True)

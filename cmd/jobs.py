@@ -102,7 +102,9 @@ def print_passed(job: Job) -> None:
         if "title" in detail and detail["title"] == "PASS"
     }
     if len(passed) > 0:
-        print("\tpassed:\t", " ".join(list(sorted(passed))))
+        print("\tpassed:")
+        for test in sorted(passed):
+            print(f"\t{test}")
 
 
 def print_traces(job: Job) -> None:

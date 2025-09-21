@@ -4,9 +4,12 @@ Repos module
 
 import io
 import os
+import re
 import sys
 import tarfile
+from collections import defaultdict
 from dataclasses import dataclass, field
+from functools import cache
 from pathlib import PurePath
 from typing import Callable, Iterator
 from urllib.parse import urlencode
@@ -15,10 +18,28 @@ import requests
 from requests.exceptions import RequestException
 import yaml
 
+from bats.issues import GITHUB_TOKEN
+from bats.requests import get_json
+
+
 REPOS = {
     "o3": "https://github.com/os-autoinst/opensuse-jobgroups/archive/refs/heads/master.tar.gz",
     "osd": "https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz",  # pylint: disable=line-too-long
 }
+
+TESTS_DIR = {
+    "aardvark-dns": "test",
+    "buildah": "tests",
+    "conmon": "test",
+    "netavark": "test",
+    "podman": "test/system",
+    "podman-tui": "test",
+    "runc": "tests/integration",
+    "skopeo": "systemtest",
+    "umoci": "test",
+}
+
+BATS_TEST = re.compile(r'^@test\s+"?(.*)"\s+{$')
 
 
 @dataclass(frozen=True, order=True)
@@ -131,3 +152,74 @@ def get_urls(repo: str) -> list[str]:
     Get URL's from YAML schedules in repo
     """
     return [test.url for test in get_tests(repo)]
+
+
+def get_url(package: str, version: str, test: str) -> str:
+    """
+    Get URL for test
+    """
+    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
+    return f"https://github.com/{github_org}/{package}/blob/v{version}/test/{test}.bats"
+
+
+@cache
+def get_bats_tests(package: str, version: str) -> dict[str, list[str]]:
+    """
+    Get tests from package
+    """
+    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
+    tarball = (
+        f"https://github.com/{github_org}/{package}/archive/refs/tags/v{version}.tar.gz"
+    )
+    tests_dir = TESTS_DIR[package]
+
+    tests: dict[str, list[str]] = defaultdict(list)
+    for file, data in grep_tarball(tarball, f"{tests_dir}/*.bats"):
+        lines = data.splitlines()
+        for line in lines:
+            match = BATS_TEST.findall(line)
+            if not match:
+                continue
+            test = match[0]
+            # We use list.insert() instead of list.append()
+            # because we'll use list.pop()
+            tests[test].insert(0, file)
+            tests[test].append(file)
+    return tests
+
+
+@cache
+def list_files(package: str, version: str) -> list[str]:
+    """
+    List tests from upstream
+    """
+
+    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
+    repo = f"{github_org}/{package}"
+    test_dir = TESTS_DIR[package]
+
+    tag = version
+    if tag == "":
+        api_url = f"https://api.github.com/repos/{repo}/tags"
+        data = get_json(api_url)
+        if data is None:
+            sys.exit(f"ERROR: {package} {tag}")
+        tag = data[0]["name"]
+    elif tag[0].isdigit() and not tag.startswith("v"):
+        tag = f"v{tag}"
+
+    api_url = f"https://api.github.com/repos/{repo}/contents/{test_dir}"
+    headers = None
+    if GITHUB_TOKEN:
+        headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
+    params = {"ref": tag}
+    data = get_json(api_url, headers=headers, params=params)
+    if data is None:
+        sys.exit(f"ERROR: {package} {tag}")
+
+    items = []
+    for item in data:
+        if not item["name"].endswith(".bats"):
+            continue
+        items.append(item["name"].removesuffix(".bats"))
+    return items

@@ -9,26 +9,9 @@ import sys
 from collections import defaultdict
 from copy import deepcopy
 from dataclasses import dataclass
-from functools import cache
 
-from bats.repos import grep_tarball
-from bats.requests import get_json
-from bats.issues import GITHUB_TOKEN
+from bats.repos import get_bats_tests, get_url, list_files
 
-
-TESTS_DIR = {
-    "aardvark-dns": "test",
-    "buildah": "tests",
-    "conmon": "test",
-    "netavark": "test",
-    "podman": "test/system",
-    "podman-tui": "test",
-    "runc": "tests/integration",
-    "skopeo": "systemtest",
-    "umoci": "test",
-}
-
-BATS_TEST = re.compile(r'^@test\s+"?(.*)"\s+{$')
 
 # We want to extract the timing information from lines like these:
 # not ok 166 bud-git-context in 118ms
@@ -48,51 +31,6 @@ class Test:
     name: str
     url: str
     lines: list[str]
-
-
-def get_url(package: str, version: str, test: str) -> str:
-    """
-    Get URL for test
-    """
-    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
-    return f"https://github.com/{github_org}/{package}/blob/v{version}/test/{test}.bats"
-
-
-@cache
-def list_files(package: str, version: str) -> list[str]:
-    """
-    List tests from upstream
-    """
-
-    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
-    repo = f"{github_org}/{package}"
-    test_dir = TESTS_DIR[package]
-
-    tag = version
-    if tag == "":
-        api_url = f"https://api.github.com/repos/{repo}/tags"
-        data = get_json(api_url)
-        if data is None:
-            sys.exit(f"ERROR: {package} {tag}")
-        tag = data[0]["name"]
-    elif tag[0].isdigit() and not tag.startswith("v"):
-        tag = f"v{tag}"
-
-    api_url = f"https://api.github.com/repos/{repo}/contents/{test_dir}"
-    headers = None
-    if GITHUB_TOKEN:
-        headers = {"Authorization": f"Bearer {GITHUB_TOKEN}"}
-    params = {"ref": tag}
-    data = get_json(api_url, headers=headers, params=params)
-    if data is None:
-        sys.exit(f"ERROR: {package} {tag}")
-
-    items = []
-    for item in data:
-        if not item["name"].endswith(".bats"):
-            continue
-        items.append(item["name"].removesuffix(".bats"))
-    return items
 
 
 def grep_notok(  # pylint: disable=too-many-branches
@@ -179,32 +117,6 @@ def grep_skipped(file: str) -> list[str]:
     return skipped
 
 
-@cache
-def get_tests(package: str, version: str) -> dict[str, list[str]]:
-    """
-    Get tests from package
-    """
-    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
-    tarball = (
-        f"https://github.com/{github_org}/{package}/archive/refs/tags/v{version}.tar.gz"
-    )
-    tests_dir = TESTS_DIR[package]
-
-    tests: dict[str, list[str]] = defaultdict(list)
-    for file, data in grep_tarball(tarball, f"{tests_dir}/*.bats"):
-        lines = data.splitlines()
-        for line in lines:
-            match = BATS_TEST.findall(line)
-            if not match:
-                continue
-            test = match[0]
-            # We use list.insert() instead of list.append()
-            # because we'll use list.pop()
-            tests[test].insert(0, file)
-            tests[test].append(file)
-    return tests
-
-
 def get_timings(file: str) -> dict[str, list[tuple[str, int]]]:
     """
     Return the time it takes each test
@@ -230,7 +142,7 @@ def get_timings(file: str) -> dict[str, list[tuple[str, int]]]:
         sys.exit(f"Malformed TAP file: {file}")
 
     # We need a deepcopy because we use list.pop()
-    tests = deepcopy(get_tests(package, version))
+    tests = deepcopy(get_bats_tests(package, version))
     file = ""
 
     timings: dict[str, list[tuple[str, int]]] = defaultdict(list)

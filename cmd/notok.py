@@ -7,21 +7,22 @@ import contextlib
 import re
 import sys
 import tempfile
+import textwrap
 from concurrent.futures import ThreadPoolExecutor
 from functools import reduce
 
 from bats.job import get_job, Job
 from bats.requests import download_file
-from bats.tap import get_timings, grep_notok, grep_skipped
+from bats.junit import get_timings, grep_notok, grep_skipped
 from bats.utils import get_traces
 
 
-TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.tap(?:\.txt)?$"
+TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.(?:tap|xml)(?:\.txt)?$"
 
 
 def process_files(files: list[str]) -> dict[str, str]:
     """
-    Process .tap files
+    Process log files
     """
     info = {}
     skip_common = set()
@@ -49,9 +50,9 @@ def main_notok(args: argparse.Namespace) -> None:
     if job is None:
         sys.exit(f"ERROR: {args.url}")
 
-    logs = [log for log in job.logs if log.endswith((".tap", ".tap.txt"))]
+    logs = [log for log in job.logs if log.endswith(".xml")]
     if not logs:
-        sys.exit(f"ERROR: {args.url}: No .tap logs")
+        sys.exit(f"ERROR: {args.url}: No logs")
 
     # Expected number of TAP logs per package
     expected = {
@@ -98,19 +99,26 @@ def print_failures(logs: list[str], verbose: bool = False) -> None:
     for file in logs:
         failed = grep_notok(file, ignored=verbose)
         for test in failed:
-            print(file, test.url)
-            print("\n" + "\n".join(test.lines) + "\n")
+            print(test.tag, file, test.url)
+            print(textwrap.indent(test.text.strip(), "  "))
+            print()
 
 
 def print_skipped(logs: list[str]) -> None:
     """
     Print skipped tests
     """
+    suite_width = reason_width = -1
     for file in logs:
-        print(file)
         skipped = grep_skipped(file)
-        for line in skipped:
-            print(f"\t{line}")
+        for suite, reason, _ in skipped:
+            suite_width = max(suite_width, len(suite))
+            reason_width = max(reason_width, len(reason))
+    fmt = f"{{:{suite_width}}}  {{:{reason_width}}}  {{}}"
+    for file in logs:
+        skipped = grep_skipped(file)
+        for suite, reason, test in skipped:
+            print(fmt.format(suite, reason, test))
 
 
 def print_timings(logs: list[str], verbose: bool = False) -> None:
@@ -131,7 +139,7 @@ def print_timings(logs: list[str], verbose: bool = False) -> None:
                 if verbose:
                     # seconds = msecs // 1000 or 1
                     print(fmt.format(msecs, file, test))
-                total += msecs
+                total += int(msecs)
             if not verbose:
                 print(fmt.format(total, file))
             file_total += total

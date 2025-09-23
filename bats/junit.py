@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+"""
+Helpers to read JUnit XML (instead of TAP)
+"""
+
+import xml.etree.ElementTree as ET
+from collections import defaultdict
+from dataclasses import dataclass
+
+from bats.repos import get_url
+
+
+@dataclass(frozen=True)
+class Test:
+    """
+    Test class
+    """
+
+    name: str
+    url: str
+    tag: str
+    text: str
+
+
+def grep_notok(file: str, ignored: bool = False) -> list[Test]:
+    """
+    Find the failed tests in a JUnit XML file.
+
+    If `ignored` is True, also include <xfailure> entries (expected failures).
+    """
+    tree = ET.parse(file)
+    root = tree.getroot()
+    tests: list[Test] = []
+
+    package = root.attrib["package"]
+    version = root.attrib["version"]
+    prefix = root.attrib["name"].removeprefix("bats-")
+
+    for tc in root.iter("testcase"):
+        failure = tc.find("failure")
+        xfailure = tc.find("xfailure")
+
+        # always include real failures/errors
+        if failure is not None:
+            node = failure
+        # include xfailure only when requested
+        elif ignored and xfailure is not None:
+            node = xfailure
+        else:
+            continue
+
+        test = tc.attrib["classname"].removeprefix(f"{prefix}-").removesuffix(".bats")
+
+        fail = node.tag if node.tag == "xfailure" else node.tag.upper()
+        text = "" if node.text is None else node.text
+        tests.append(
+            Test(name=test, url=get_url(package, version, test), tag=fail, text=text)
+        )
+
+    return tests
+
+
+def grep_skipped(file: str) -> list[tuple[str, str, str]]:
+    """
+    Find the skipped tests in a JUnit XML file
+    """
+    tree = ET.parse(file)
+    root = tree.getroot()
+    skipped: list[tuple[str, str, str]] = []
+
+    prefix = root.attrib["name"].removeprefix("bats-")
+
+    for tc in root.iter("testcase"):
+        skip = tc.find("skipped")
+        if skip is None:
+            continue
+        bats_file = (
+            tc.attrib["classname"].removeprefix(f"{prefix}-").removesuffix(".bats")
+        )
+        test = tc.attrib["name"]
+        text = str(skip.text)
+        skipped.append((bats_file, text, test))
+    return skipped
+
+
+def get_timings(file: str) -> dict[str, list[tuple[str, float]]]:
+    """
+    Return timings (seconds) for each test in a JUnit XML file,
+    grouped by classname
+    """
+    tree = ET.parse(file)
+    root = tree.getroot()
+
+    timings: dict[str, list[tuple[str, float]]] = defaultdict(list)
+    for tc in root.iter("testcase"):
+        classname = tc.attrib["classname"]
+        name = tc.attrib["name"]
+        time = float(tc.attrib["time"]) * 1000
+        timings[classname].append((name, time))
+    return timings

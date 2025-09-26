@@ -59,7 +59,7 @@ def find_tests(
     match: Callable,
 ) -> list[Test]:
     """
-    Find tests in YAML schedule with settings containing "BATS_PACKAGE"
+    Find tests in YAML schedule with settings matching match
     """
     try:
         data = yaml.safe_load(buf)
@@ -131,7 +131,7 @@ def bats_test(test: dict[str, str]) -> bool:
     """
     Filter to be used on find_tests()
     """
-    return "BATS_PACKAGE" in test["settings"]
+    return "BATS_PACKAGE" in test["settings"] or "CONTAINER_TESTS" in test["settings"]
 
 
 def get_tests(repo: str) -> list[Test]:

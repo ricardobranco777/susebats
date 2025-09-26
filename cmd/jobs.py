@@ -13,7 +13,7 @@ from bats.requests import ping
 from bats.utils import get_traces
 
 
-EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_testsuite.*$")
+EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_(e2e|testsuite).*$")
 TIMING = re.compile(r" in \d+ms(?: # .*)?$")
 
 
@@ -72,7 +72,14 @@ def print_job(job: Job, verbose: bool = False) -> None:
     """
     arch = job.settings["ARCH"]
     name = EXTRA.sub("", job.name)
-    package = job.settings["BATS_PACKAGE"]
+    package = job.settings.get(
+        "BATS_PACKAGE",
+        job.settings["TEST"]
+        .removeprefix("container_host_")
+        .removesuffix("_crun")
+        .removesuffix("_testsuite")
+        .replace("_", "/"),
+    )
     runtime = job.settings.get("OCI_RUNTIME", "")
     if runtime:
         package = f"{package}+{runtime}"

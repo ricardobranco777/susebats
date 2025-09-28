@@ -138,7 +138,7 @@ def print_timings(logs: list[str], verbose: bool = False) -> None:
             for test, msecs in timings[file]:
                 if verbose:
                     # seconds = msecs // 1000 or 1
-                    print(fmt.format(msecs, file, test))
+                    print(fmt.format(int(msecs), file, test))
                 total += int(msecs)
             if not verbose:
                 print(fmt.format(total, file))

@@ -11,7 +11,7 @@ from cmd.list import main_list
 from cmd.notok import main_notok
 
 
-VERSION = "1.3.2"
+VERSION = "1.9"
 
 
 def main() -> None:

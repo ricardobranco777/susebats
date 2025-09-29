@@ -54,15 +54,17 @@ def main_notok(args: argparse.Namespace) -> None:
     if not logs:
         sys.exit(f"ERROR: {args.url}: No logs")
 
-    # Expected number of TAP logs per package
+    # Expected number of logs per package
     expected = {
-        "aardvark-dns": 1,
-        "buildah": 2,
-        "conmon": 2,
-        "netavark": 1,
-        "podman": 4,
-        "runc": 2,
-        "skopeo": 2,
+        "aardvark_testsuite": 1,
+        "buildah_testsuite": 2,
+        "conmon_testsuite": 2,
+        "docker_testsuite": 5,
+        "netavark_testsuite": 1,
+        "podman_e2e": 2,
+        "podman_testsuite": 4,
+        "runc_testsuite": 2,
+        "skopeo_testsuite": 2,
     }
 
     if job.settings["DISTRI"] == "opensuse" and "OCI_RUNTIME" not in job.settings:
@@ -78,8 +80,11 @@ def main_notok(args: argparse.Namespace) -> None:
             with ThreadPoolExecutor(max_workers=len(logs)) as executor:
                 files = list(filter(None, executor.map(download_file, logs)))
 
-        if len(files) != expected[job.settings["BATS_PACKAGE"]]:
-            print(f"ERROR: Job has only {len(files)} TAP logs")
+        testsuite = (
+            job.settings["TEST"].removeprefix("container_host_").removesuffix("_crun")
+        )
+        if len(files) != expected[testsuite]:
+            print(f"ERROR: Job has only {len(files)} logs")
 
         if args.skipped:
             print_skipped(files)

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Helpers to read JUnit XML (instead of TAP)
+Helpers to read JUnit XML
 """
 
 import xml.etree.ElementTree as ET

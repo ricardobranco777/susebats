@@ -61,7 +61,7 @@ def main_notok(args: argparse.Namespace) -> None:
         "conmon_testsuite": 2,
         "docker_testsuite": 5,
         "netavark_testsuite": 1,
-        "podman_e2e": 2,
+        "podman_e2e": 4,
         "podman_testsuite": 4,
         "runc_testsuite": 2,
         "skopeo_testsuite": 2,

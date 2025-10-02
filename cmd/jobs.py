@@ -87,7 +87,7 @@ def print_job(job: Job, verbose: bool = False) -> None:
     status = status.split("_")[-1]
     if verbose:
         print(job.seconds, end="\t")
-    print(f"{status:10}  {package:13}  {arch:7}  {job.url:<42}  {name}")
+    print(f"{status:10}  {package:15}  {arch:7}  {job.url:<42}  {name}")
     if verbose:
         print_passed(job)
         print_traces(job)

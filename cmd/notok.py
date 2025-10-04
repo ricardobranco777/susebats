@@ -54,22 +54,6 @@ def main_notok(args: argparse.Namespace) -> None:
     if not logs:
         sys.exit(f"ERROR: {args.url}: No logs")
 
-    # Expected number of logs per package
-    expected = {
-        "aardvark_testsuite": 1,
-        "buildah_testsuite": 2,
-        "conmon_testsuite": 2,
-        "docker_testsuite": 5,
-        "netavark_testsuite": 1,
-        "podman_e2e": 4,
-        "podman_testsuite": 4,
-        "runc_testsuite": 2,
-        "skopeo_testsuite": 2,
-    }
-
-    if job.settings["DISTRI"] == "opensuse" and "OCI_RUNTIME" not in job.settings:
-        expected["conmon"] = 4
-
     with tempfile.TemporaryDirectory() as tmpdir, contextlib.chdir(tmpdir):
         files = []
         if len(logs) == 1:
@@ -79,12 +63,6 @@ def main_notok(args: argparse.Namespace) -> None:
         else:
             with ThreadPoolExecutor(max_workers=len(logs)) as executor:
                 files = list(filter(None, executor.map(download_file, logs)))
-
-        testsuite = (
-            job.settings["TEST"].removeprefix("container_host_").removesuffix("_crun")
-        )
-        if len(files) != expected[testsuite]:
-            print(f"ERROR: Job has only {len(files)} logs")
 
         if args.skipped:
             print_skipped(files)

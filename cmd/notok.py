@@ -4,42 +4,15 @@ Generate BATS_IGNORE variables from an openQA job URL
 
 import argparse
 import contextlib
-import re
 import sys
 import tempfile
 import textwrap
 from concurrent.futures import ThreadPoolExecutor
-from functools import reduce
 
 from bats.job import get_job, Job
 from bats.requests import download_file
 from bats.junit import get_failures, get_skipped, get_timings
 from bats.utils import get_traces
-
-
-TAP_REGEX = r"((?:root|user)(?:-(?:local|remote))?)\.(?:tap|xml)(?:\.txt)?$"
-
-
-def process_files(files: list[str]) -> dict[str, str]:
-    """
-    Process log files
-    """
-    info = {}
-    skip_common = set()
-    found: dict[str, set] = {}
-    for file in files:
-        found[file] = set(t.name for t in get_failures(file, ignored=True))
-    # Find failed subtests in all scenarios for general skip variable
-    skip_common = reduce(lambda x, y: x & y, found.values())
-    if len(files) > 1:
-        for file in files:
-            found[file] -= skip_common
-    info["BATS_IGNORE"] = " ".join(sorted(skip_common))
-    if len(files) > 1:
-        for file in files:
-            skip = re.findall(TAP_REGEX, file)[0].replace("-", "_").upper()
-            info[f"BATS_IGNORE_{skip}"] = " ".join(sorted(found[file]))
-    return info
 
 
 def main_notok(args: argparse.Namespace) -> None:
@@ -68,11 +41,9 @@ def main_notok(args: argparse.Namespace) -> None:
             print_skipped(files)
         elif args.timing:
             print_timings(files, verbose=args.verbose)
-        elif args.verbose:
+        else:
             print_failures(files, verbose=args.verbose > 1)
             print_traces(job)
-        else:
-            print_settings(files)
 
 
 def print_failures(logs: list[str], verbose: bool = False) -> None:
@@ -136,15 +107,3 @@ def print_traces(job: Job) -> None:
     """
     for trace in get_traces(job):
         print(trace)
-
-
-def print_settings(logs: list[str]) -> None:
-    """
-    Print job settings
-    """
-    info = process_files(logs)
-    for key, value in info.items():
-        if value:
-            print(f"    {key}:", value)
-        else:
-            print(f"    {key}:")

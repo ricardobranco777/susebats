@@ -40,7 +40,7 @@ def main_notok(args: argparse.Namespace) -> None:
         if args.skipped:
             print_skipped(files)
         elif args.timing:
-            print_timings(files, verbose=args.verbose)
+            print_timings(files, verbose=bool(args.verbose))
         else:
             print_failures(files, verbose=args.verbose > 1)
             print_traces(job)

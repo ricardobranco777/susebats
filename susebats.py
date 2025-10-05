@@ -57,7 +57,11 @@ def main() -> None:
         "-t", "--timing", action="count", help="print timing analysis"
     )
     parser_notok.add_argument(
-        "-v", "--verbose", action="count", help="may be specified more than once"
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="may be specified more than once",
     )
     parser_notok.add_argument("url", help="openQA job")
     parser_notok.set_defaults(func=main_notok)

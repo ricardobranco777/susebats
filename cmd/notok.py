@@ -13,7 +13,7 @@ from functools import reduce
 
 from bats.job import get_job, Job
 from bats.requests import download_file
-from bats.junit import get_timings, grep_notok, grep_skipped
+from bats.junit import get_timings, get_failures, grep_skipped
 from bats.utils import get_traces
 
 
@@ -28,7 +28,7 @@ def process_files(files: list[str]) -> dict[str, str]:
     skip_common = set()
     found: dict[str, set] = {}
     for file in files:
-        found[file] = set(t.name for t in grep_notok(file, ignored=True))
+        found[file] = set(t.name for t in get_failures(file, ignored=True))
     # Find failed subtests in all scenarios for general skip variable
     skip_common = reduce(lambda x, y: x & y, found.values())
     if len(files) > 1:
@@ -80,7 +80,7 @@ def print_failures(logs: list[str], verbose: bool = False) -> None:
     Print job failures
     """
     for file in logs:
-        failed = grep_notok(file, ignored=verbose)
+        failed = get_failures(file, ignored=verbose)
         for test in failed:
             print(test.tag, file, test.url)
             print(textwrap.indent(test.text.strip(), "  "))

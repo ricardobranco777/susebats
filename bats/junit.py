@@ -22,7 +22,7 @@ class Test:
     text: str
 
 
-def grep_notok(file: str, ignored: bool = False) -> list[Test]:
+def get_failures(file: str, ignored: bool = False) -> list[Test]:
     """
     Find the failed tests in a JUnit XML file.
 

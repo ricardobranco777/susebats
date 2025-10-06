@@ -126,7 +126,8 @@ def print_timings(logs: list[str], verbose: bool = False) -> None:
             if not verbose:
                 print(fmt.format(total, file))
             file_total += total
-        print("# total: ", file_total)
+        if verbose:
+            print("# total: ", file_total)
 
 
 def print_traces(job: Job) -> None:

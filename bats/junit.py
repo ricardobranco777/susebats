@@ -22,7 +22,9 @@ class Test:
     text: str
 
 
-def get_failures(file: str, ignored: bool = False) -> list[Test]:
+def get_failures(  # pylint: disable=too-many-locals
+    file: str, ignored: bool = False
+) -> list[Test]:
     """
     Find the failed tests in a JUnit XML file.
 
@@ -52,7 +54,12 @@ def get_failures(file: str, ignored: bool = False) -> list[Test]:
         test = tc.attrib["classname"].removeprefix(f"{prefix}-").removesuffix(".bats")
 
         fail = node.tag if node.tag == "xfailure" else node.tag.upper()
-        text = "" if node.text is None else node.text
+
+        text = (node.text or "").strip()
+        system_err = tc.find("system-err")
+        if system_err is not None and system_err.text:
+            text += "\n" + system_err.text.strip()
+
         tests.append(
             Test(name=test, url=get_url(package, version, test), tag=fail, text=text)
         )

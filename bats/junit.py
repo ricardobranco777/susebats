@@ -60,7 +60,7 @@ def get_failures(file: str, ignored: bool = False) -> list[Test]:
     return tests
 
 
-def grep_skipped(file: str) -> list[tuple[str, str, str]]:
+def get_skipped(file: str) -> list[tuple[str, str, str]]:
     """
     Find the skipped tests in a JUnit XML file
     """

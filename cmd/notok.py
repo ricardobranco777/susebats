@@ -13,7 +13,7 @@ from functools import reduce
 
 from bats.job import get_job, Job
 from bats.requests import download_file
-from bats.junit import get_timings, get_failures, grep_skipped
+from bats.junit import get_failures, get_skipped, get_timings
 from bats.utils import get_traces
 
 
@@ -93,13 +93,13 @@ def print_skipped(logs: list[str]) -> None:
     """
     suite_width = reason_width = -1
     for file in logs:
-        skipped = grep_skipped(file)
+        skipped = get_skipped(file)
         for suite, reason, _ in skipped:
             suite_width = max(suite_width, len(suite))
             reason_width = max(reason_width, len(reason))
     fmt = f"{{:{suite_width}}}  {{:{reason_width}}}  {{}}"
     for file in logs:
-        skipped = grep_skipped(file)
+        skipped = get_skipped(file)
         for suite, reason, test in skipped:
             print(fmt.format(suite, reason, test))
 

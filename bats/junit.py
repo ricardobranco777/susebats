@@ -51,6 +51,7 @@ def get_failures(  # pylint: disable=too-many-locals
         else:
             continue
 
+        is_bats = tc.attrib["classname"].endswith(".bats")
         test = tc.attrib["classname"].removeprefix(f"{prefix}-").removesuffix(".bats")
 
         fail = node.tag if node.tag == "xfailure" else node.tag.upper()
@@ -61,7 +62,12 @@ def get_failures(  # pylint: disable=too-many-locals
             text += "\n" + system_err.text.strip()
 
         tests.append(
-            Test(name=test, url=get_url(package, version, test), tag=fail, text=text)
+            Test(
+                name=test,
+                url=get_url(package, version, test) if is_bats else "",
+                tag=fail,
+                text=text,
+            )
         )
 
     return tests

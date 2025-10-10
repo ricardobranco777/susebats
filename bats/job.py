@@ -42,7 +42,7 @@ class Job:  # pylint: disable=too-many-instance-attributes
     comments: list[Comment]
 
 
-def get_job_id(url: str, params: dict[str, list[str]], build: str = "") -> int | None:
+def get_job_id(url: str, params: dict[str, list[str]]) -> int | None:
     """
     Get job ID from URL with no job ID in URL
     """
@@ -50,21 +50,15 @@ def get_job_id(url: str, params: dict[str, list[str]], build: str = "") -> int |
     if not urlx.query:
         return int(os.path.basename(urlx.path).removeprefix("t"))
 
-    # Get build number
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/"
     data = get_json(api_url, params=params, key="jobs")
     if data is None or len(data) == 0:
         return None
-    if not build:
-        return data[-1]["id"]
-    for job in reversed(data):
-        if job["settings"]["BUILD"].startswith(build):
-            return job["id"]
-    return None
+    return data[-1]["id"]
 
 
-def get_job(  # pylint: disable=too-many-branches,too-many-locals
-    url: str, full: bool = False, previous: bool = False, build: str = ""
+def get_job(  # pylint: disable=too-many-branches
+    url: str, full: bool = False, previous: bool = False
 ) -> Job | None:
     """
     Get a job
@@ -74,7 +68,7 @@ def get_job(  # pylint: disable=too-many-branches,too-many-locals
     urlx = urlparse(url)
 
     params: dict[str, list[str]] = parse_qs(urlx.query)
-    job_id = get_job_id(url, params=params, build=build)
+    job_id = get_job_id(url, params=params)
     if job_id is None:
         return None
 

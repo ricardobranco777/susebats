@@ -5,7 +5,6 @@ List BATS jobs on o.s.d & o3
 import argparse
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta
 
 from bats.job import get_job, Job
 from bats.repos import REPOS, get_urls
@@ -48,16 +47,12 @@ def main_jobs(args: argparse.Namespace) -> None:
             urls.extend(results)
     urls.sort()
 
-    build = args.build
-    if build and build.startswith("-") and len(build) < 8 and build[1:].isdigit():
-        today = datetime.now().date()
-        date = today - timedelta(days=int(build[1:]))
-        build = date.strftime("%Y%m%d")
-
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
             lambda u: get_job(
-                u, full=args.verbose, previous=args.previous, build=build
+                u,
+                full=args.verbose,
+                previous=args.previous,
             ),
             urls,
         ):

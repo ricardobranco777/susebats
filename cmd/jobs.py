@@ -49,11 +49,7 @@ def main_jobs(args: argparse.Namespace) -> None:
 
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
-            lambda u: get_job(
-                u,
-                full=args.verbose,
-                previous=args.previous,
-            ),
+            lambda u: get_job(u, full=args.verbose),
             urls,
         ):
             if job is None:

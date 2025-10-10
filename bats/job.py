@@ -57,9 +57,7 @@ def get_job_id(url: str, params: dict[str, list[str]]) -> int | None:
     return data[-1]["id"]
 
 
-def get_job(  # pylint: disable=too-many-branches
-    url: str, full: bool = False, previous: bool = False
-) -> Job | None:
+def get_job(url: str, full: bool = False) -> Job | None:
     """
     Get a job
     """
@@ -81,9 +79,6 @@ def get_job(  # pylint: disable=too-many-branches
     assert isinstance(info, dict)
 
     url = f"{urlx.scheme}://{urlx.netloc}/tests/{job_id}"
-
-    if previous and info["state"] != "done" and "origin_id" in info:
-        return get_job(urljoin(url, str(info["origin_id"])), previous)
 
     for key in ("clone_id", "origin_id"):
         info[key] = urljoin(url, str(info[key])) if info.get(key) else ""

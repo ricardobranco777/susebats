@@ -11,7 +11,6 @@ RUN	zypper addrepo https://download.opensuse.org/repositories/SUSE:/CA/openSUSE_
 ENV	REQUESTS_CA_BUNDLE=/etc/ssl/ca-bundle.pem
 
 COPY	bats	/bats
-COPY	cmd	/cmd
 COPY	*.py	/
 
 CMD	[]

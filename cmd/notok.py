@@ -82,7 +82,7 @@ def print_failures(logs: list[str], verbose: bool = False) -> None:
     for file in logs:
         failed = get_failures(file, ignored=verbose)
         for test in failed:
-            print(test.tag, file, test.url)
+            print(test.tag, file, test.name, test.url)
             print(textwrap.indent(test.text.strip(), "  "))
             print()
 

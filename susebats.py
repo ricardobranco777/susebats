@@ -208,7 +208,7 @@ def print_jobinfo(
     url: str, skipped: bool = False, timing: bool = False, verbose: bool = False
 ) -> None:
     """
-    Print job
+    Print job info
     """
     job = get_job(url, full=True)
     if job is None:
@@ -234,7 +234,8 @@ def print_jobinfo(
             print_timings(files, verbose=verbose)
         else:
             print_failures(files, verbose=verbose)
-            print_traces(job)
+            for trace in get_traces(job):
+                print(trace)
 
 
 def print_failures(logs: list[str], verbose: bool = False) -> None:
@@ -292,17 +293,9 @@ def print_timings(logs: list[str], verbose: bool = False) -> None:
             print("# total: ", file_total)
 
 
-def print_traces(job: Job) -> None:
-    """
-    Print traces recorded by `record_info("TRACE", $trace)`
-    """
-    for trace in get_traces(job):
-        print(trace)
-
-
 def get_traces(job: Job) -> list[str]:
     """
-    Print traces recorded by `record_info("TRACE", $trace)`
+    Get traces recorded by `record_info("TRACE", $trace)`
     """
     traces = [
         detail["text_data"]

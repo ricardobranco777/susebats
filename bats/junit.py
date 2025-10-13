@@ -93,7 +93,7 @@ def get_skipped(file: str) -> list[tuple[str, str, str]]:
             tc.attrib["classname"].removeprefix(f"{prefix}-").removesuffix(".bats")
         )
         test = tc.attrib["name"]
-        text = str(skip.text)
+        text = skip.attrib.get("message") or (skip.text or "")
         skipped.append((bats_file, text, test))
     return skipped
 

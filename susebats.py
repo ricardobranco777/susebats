@@ -119,8 +119,6 @@ def print_job(job: Job, verbose: bool = False) -> None:
         package = f"{package}+{runtime}"
     status = job.result.upper() if job.result == "failed" else job.result
     status = status.split("_")[-1]
-    if verbose:
-        print(job.seconds, end="\t")
     print(f"{status:10}  {package:15}  {arch:7}  {job.url:<42}  {name}")
     if verbose:
         print_passed(job)

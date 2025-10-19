@@ -34,9 +34,16 @@ def get_failures(  # pylint: disable=too-many-locals
     root = tree.getroot()
     tests: list[Test] = []
 
-    package = root.attrib["package"]
-    version = root.attrib["version"]
     prefix = root.attrib["name"].removeprefix("bats-")
+
+    package = root.attrib.get("package", "")
+    version = root.attrib.get("version", "")
+    # fallback: read <property> entries if attributes missing
+    for prop in root.findall("./properties/property"):
+        if not package and prop.get("name") == "package":
+            package = prop.get("value", "")
+        elif not version and prop.get("name") == "version":
+            version = prop.get("value", "")
 
     for tc in root.iter("testcase"):
         failure = tc.find("failure")

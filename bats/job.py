@@ -54,6 +54,9 @@ def get_job_id(url: str, params: dict[str, list[str]]) -> int | None:
     data = get_json(api_url, params=params, key="jobs")
     if data is None or len(data) == 0:
         return None
+    for job in reversed(data):
+        if job["settings"]["BUILD"].isdigit():
+            return job["id"]
     return data[-1]["id"]
 
 

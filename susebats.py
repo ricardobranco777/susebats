@@ -20,7 +20,7 @@ from bats.requests import download_file, ping
 
 VERSION = "1.9"
 
-EXTRA = re.compile(r"-(?:container_host_)?[a-z]+_(e2e|testsuite).*$")
+EXTRA = re.compile(r"-(container_host_)?[a-z]+_(rootless_)?(e2e|testsuite).*$")
 TIMING = re.compile(r" in \d+ms(?: # .*)?$")
 
 

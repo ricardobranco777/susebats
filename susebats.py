@@ -337,14 +337,21 @@ def print_jobgroup(url: str, verbose: bool = False) -> None:
                 ]
             )
 
+    jobs = []
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
             lambda u: get_job(u, full=verbose),
             urls,
         ):
-            if job is None:
-                continue
-            print_job(job, verbose=verbose)
+            if job is not None:
+                jobs.append(job)
+
+    jobs.sort(
+        key=lambda j: (j.settings["BUILD"], j.settings["ARCH"], j.settings["TEST"])
+    )
+
+    for job in jobs:
+        print_job(job, verbose=verbose)
 
 
 if __name__ == "__main__":

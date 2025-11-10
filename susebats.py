@@ -10,8 +10,10 @@ import sys
 import tempfile
 import textwrap
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from datetime import datetime, timedelta
 from itertools import chain
 
+from bats.build import get_builds, get_jobs
 from bats.job import get_job, Job
 from bats.junit import get_failures, get_skipped, get_timings
 from bats.repos import REPOS, get_tests, get_urls
@@ -52,9 +54,15 @@ def main() -> None:
     if args.list:
         list_testsuites()
     elif args.url:
-        print_jobinfo(
-            url=args.url, skipped=args.skipped, timing=args.timing, verbose=args.verbose
-        )
+        if "/group_overview/" in args.url:
+            print_jobgroup(args.url, verbose=args.verbose)
+        else:
+            print_jobinfo(
+                url=args.url,
+                skipped=args.skipped,
+                timing=args.timing,
+                verbose=args.verbose,
+            )
     else:
         list_jobs(verbose=args.verbose)
 
@@ -306,6 +314,37 @@ def get_traces(job: Job) -> list[str]:
     if package == "runc":
         traces = list(filter(lambda t: "mem_cgroup_out_of_memory" not in t, traces))
     return traces
+
+
+def print_jobgroup(url: str, verbose: bool = False) -> None:
+    """
+    Print job group
+    """
+    now = datetime.now()
+    builds = list(filter(lambda b: now - b.date < timedelta(days=3), get_builds(url)))
+
+    urls = []
+    with ThreadPoolExecutor(max_workers=len(builds)) as executor:
+        for results in executor.map(
+            lambda b: get_jobs(url, b),
+            builds,
+        ):
+            urls.extend(
+                [
+                    item["url"]
+                    for item in results
+                    if item["name"].split("@")[0].endswith("_testsuite")
+                ]
+            )
+
+    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+        for job in executor.map(
+            lambda u: get_job(u, full=verbose),
+            urls,
+        ):
+            if job is None:
+                continue
+            print_job(job, verbose=verbose)
 
 
 if __name__ == "__main__":

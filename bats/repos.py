@@ -72,7 +72,7 @@ def find_tests(
                 for test in scenario.keys():
                     if scenario[test] is None or "settings" not in scenario[test]:
                         continue
-                    if not match(scenario[test]):
+                    if not match(product, scenario[test]):
                         continue
                     settings = scenario[test]["settings"]
                     if product.startswith("opensuse"):
@@ -122,11 +122,13 @@ def grep_tarball(
         print(f"ERROR: {url}: {error}", file=sys.stderr)
 
 
-def bats_test(test: dict[str, str]) -> bool:
+def is_upstream_test(product: str, test: dict[str, str]) -> bool:
     """
     Filter to be used on find_tests()
     """
-    return "BATS_PACKAGE" in test["settings"] or "CONTAINER_TESTS" in test["settings"]
+    return "Staging" not in product and (
+        "BATS_PACKAGE" in test["settings"] or "CONTAINER_TESTS" in test["settings"]
+    )
 
 
 def get_tests(repo: str) -> list[Test]:
@@ -136,7 +138,7 @@ def get_tests(repo: str) -> list[Test]:
     tests = [
         test
         for file, data in grep_tarball(repo, "*.yaml")
-        for test in find_tests(data, match=bats_test)
+        for test in find_tests(data, match=is_upstream_test)
     ]
     tests.sort()
     return tests

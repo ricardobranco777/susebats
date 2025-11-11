@@ -79,3 +79,7 @@ passed      podman+crun      x86_64   https://openqa.opensuse.org/tests/5379639 
 passed      runc             x86_64   https://openqa.opensuse.org/tests/5379641   opensuse-Tumbleweed-DVD-x86_64-Build20251011
 passed      skopeo           x86_64   https://openqa.opensuse.org/tests/5379642   opensuse-Tumbleweed-DVD-x86_64-Build20251011
 ```
+
+To check SLES 16.0 Staging:
+
+`susebats https://openqa.suse.de/group_overview/678`

@@ -129,16 +129,22 @@ def print_job(job: Job, verbose: bool = False) -> None:
     status = status.split("_")[-1]
     print(f"{status:10}  {package:24}  {arch:7}  {job.url:<42}  {name}")
     if verbose:
-        print_passed(job)
-        traces = get_traces(job)
-        if len(traces) > 0:
-            serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
-            print(f"\ttraces: {serial0}")
-        for core in (log for log in job.logs if ".core" in log):
-            print(f"\tcore: {core}")
-        if status != "passed":
-            print_results(job)
-        print_comments(job)
+        print_extra(job)
+
+
+def print_extra(job: Job) -> None:
+    """
+    Print extra info
+    """
+    print_passed(job)
+    traces = get_traces(job)
+    if len(traces) > 0:
+        serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
+        print(f"\ttraces: {serial0}")
+    for core in (log for log in job.logs if ".core" in log):
+        print(f"\tcore: {core}")
+    print_results(job)
+    print_comments(job)
 
 
 def print_passed(job: Job) -> None:
@@ -242,6 +248,7 @@ def print_jobinfo(
             print_failures(files, verbose=verbose)
             for trace in get_traces(job):
                 print(trace)
+        print_extra(job)
 
 
 def print_failures(logs: list[str], verbose: bool = False) -> None:
@@ -345,7 +352,6 @@ def print_jobgroup(url: str, verbose: bool = False) -> None:
         ):
             if job is not None:
                 jobs.append(job)
-
     jobs.sort(
         key=lambda j: (j.settings["BUILD"], j.settings["ARCH"], j.settings["TEST"])
     )

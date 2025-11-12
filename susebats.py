@@ -23,7 +23,6 @@ from bats.requests import download_file, ping
 VERSION = "1.9"
 
 EXTRA = re.compile(r"-(container_host_)?[a-z]+_(rootless_)?(e2e|testsuite).*$")
-TIMING = re.compile(r" in \d+ms(?: # .*)?$")
 
 
 def main() -> None:
@@ -176,7 +175,7 @@ def print_results(job: Job) -> None:
             for test in result["details"]:
                 # Skip non-failed sub-tests
                 if test["result"] == "fail":
-                    title = TIMING.sub("", test["text_data"])
+                    title = test["text_data"]
                     print(f"\t{result['name']:<20}  {title}")
 
 

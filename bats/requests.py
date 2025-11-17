@@ -81,6 +81,22 @@ def get_json(
     return data
 
 
+def post(url: str, data: dict, key: str | None = None) -> dict | None:
+    """
+    Post request
+    """
+    try:
+        got = session.post(url, data=data)
+        got.raise_for_status()
+        data = got.json()
+    except RequestException as error:
+        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        return None
+    if key is not None:
+        return data[key]
+    return data
+
+
 def ping(url: str, timeout: int = 5) -> bool:
     """
     Ping URL to see if it's reachable

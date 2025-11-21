@@ -63,7 +63,7 @@ def main() -> None:
                 verbose=args.verbose,
             )
     else:
-        list_jobs(verbose=args.verbose)
+        list_jobs(timing=args.timing, verbose=args.verbose)
 
 
 def check_repo(repo: str, url: str) -> str | None:
@@ -78,7 +78,7 @@ def check_repo(repo: str, url: str) -> str | None:
     return None
 
 
-def list_jobs(verbose: bool = False) -> None:
+def list_jobs(timing: bool = False, verbose: bool = False) -> None:
     """
     List jobs
     """
@@ -104,10 +104,10 @@ def list_jobs(verbose: bool = False) -> None:
         ):
             if job is None:
                 continue
-            print_job(job, verbose=verbose)
+            print_job(job, timing=timing, verbose=verbose)
 
 
-def print_job(job: Job, verbose: bool = False) -> None:
+def print_job(job: Job, timing: bool = False, verbose: bool = False) -> None:
     """
     Print job
     """
@@ -126,6 +126,8 @@ def print_job(job: Job, verbose: bool = False) -> None:
         package = f"{package}+{runtime}"
     status = job.result.upper() if job.result == "failed" else job.result
     status = status.split("_")[-1]
+    if timing:
+        print(job.seconds, end="\t")
     print(f"{status:10}  {package:24}  {arch:7}  {job.url:<42}  {name}")
     if verbose:
         print_extra(job)

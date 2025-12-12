@@ -5,8 +5,10 @@ session module
 import atexit
 import os
 import sys
+from urllib3.util.retry import Retry
 
 import requests
+from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
 
 try:
@@ -16,6 +18,10 @@ except ImportError:
 
 
 session = requests.Session()
+adapter = HTTPAdapter(
+    pool_connections=100, pool_maxsize=100, max_retries=Retry(total=2)
+)
+session.mount("https://", adapter)
 
 TIMEOUT = 60
 

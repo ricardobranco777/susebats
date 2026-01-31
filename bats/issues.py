@@ -11,7 +11,6 @@ from requests.exceptions import RequestException
 
 from bats.requests import get_json, session, TIMEOUT
 
-
 BUGZILLA_TOKEN = os.getenv("BUGZILLA_TOKEN")
 GITLAB_TOKEN = os.getenv("GITLAB_TOKEN")
 GITHUB_TOKEN = os.getenv("GITHUB_TOKEN")

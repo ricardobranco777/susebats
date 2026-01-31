@@ -19,7 +19,6 @@ from bats.junit import get_failures, get_skipped, get_timings
 from bats.repos import REPOS, get_tests, get_urls
 from bats.requests import download_file, ping
 
-
 VERSION = "1.9"
 
 EXTRA = re.compile(r"-(container_host_)?[a-z]+_(rootless_)?(e2e|testsuite).*$")

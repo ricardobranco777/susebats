@@ -16,7 +16,6 @@ import requests
 from requests.exceptions import RequestException
 import yaml
 
-
 REPOS = {
     "o3": "https://github.com/os-autoinst/opensuse-jobgroups/archive/refs/heads/master.tar.gz",
     "osd": "https://gitlab.suse.de/qac/qac-openqa-yaml/-/archive/master/qac-openqa-yaml-master.tar.gz",  # pylint: disable=line-too-long

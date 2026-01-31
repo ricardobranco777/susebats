@@ -1,4 +1,4 @@
-FILES=*.py bats/*.py
+FILES=*.py bats/*.py utils/*.py
 
 .PHONY: all
 all: pylint mypy black

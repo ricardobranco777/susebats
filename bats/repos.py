@@ -154,5 +154,9 @@ def get_url(package: str, version: str, test: str) -> str:
     """
     Get URL for test
     """
-    github_org = "opencontainers" if package in {"runc", "umoci"} else "containers"
+    github_org = "containers"
+    if package in {"runc", "umoci"}:
+        github_org = "opencontainers"
+    elif package == "containerd":
+        github_org = "containerd"
     return f"https://github.com/{github_org}/{package}/blob/v{version}/test/{test}.bats"

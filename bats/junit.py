@@ -34,7 +34,7 @@ def get_failures(  # pylint: disable=too-many-locals
     root = tree.getroot()
     tests: list[Test] = []
 
-    prefix = root.attrib["name"].removeprefix("bats-")
+    prefix = root.attrib.get("name", "").removeprefix("bats-")
 
     package = root.attrib.get("package", "")
     version = root.attrib.get("version", "")

@@ -19,7 +19,13 @@ except ImportError:
 
 session = requests.Session()
 adapter = HTTPAdapter(
-    pool_connections=100, pool_maxsize=100, max_retries=Retry(total=2)
+    pool_connections=100,
+    pool_maxsize=100,
+    max_retries=Retry(
+        backoff_factor=0.1,
+        status_forcelist=[429, 502, 503, 504],
+        total=5,
+    ),
 )
 session.mount("https://", adapter)
 

@@ -20,8 +20,9 @@ except ImportError:
 session = requests.Session()
 adapter = HTTPAdapter(
     max_retries=Retry(
+        allowed_methods={"GET", "HEAD"},
         backoff_factor=0.1,
-        status_forcelist=[429, 502, 503, 504],
+        status_forcelist={429, 502, 503, 504},
         total=7,
     ),
     pool_connections=100,

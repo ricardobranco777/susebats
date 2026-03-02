@@ -25,8 +25,8 @@ adapter = HTTPAdapter(
         status_forcelist={429, 502, 503, 504},
         total=7,
     ),
-    pool_connections=100,
-    pool_maxsize=100,
+    pool_connections=200,
+    pool_maxsize=200,
 )
 session.mount("https://", adapter)
 

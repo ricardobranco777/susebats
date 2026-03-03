@@ -23,7 +23,7 @@ adapter = HTTPAdapter(
         allowed_methods={"GET", "HEAD"},
         backoff_factor=0.1,
         status_forcelist={429, 502, 503, 504},
-        total=7,
+        total=10,
     ),
     pool_connections=200,
     pool_maxsize=200,

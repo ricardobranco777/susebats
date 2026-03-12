@@ -139,8 +139,11 @@ def print_extra(job: Job) -> None:
     print_passed(job)
     traces = get_traces(job)
     if len(traces) > 0:
-        serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
-        print(f"\ttraces: {serial0}")
+        try:
+            serial0 = [log for log in job.logs if log.endswith("serial0.txt")].pop()
+            print(f"\ttraces: {serial0}")
+        except IndexError:
+            pass
     for core in (log for log in job.logs if ".core" in log):
         print(f"\tcore: {core}")
     print_results(job)

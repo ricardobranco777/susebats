@@ -144,7 +144,7 @@ def print_extra(job: Job) -> None:
             print(f"\ttraces: {serial0}")
         except IndexError:
             pass
-    for core in (log for log in job.logs if ".core" in log):
+    for core in (log for log in job.logs if "core." in log):
         print(f"\tcore: {core}")
     print_results(job)
     print_comments(job)

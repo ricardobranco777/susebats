@@ -251,7 +251,7 @@ def print_jobinfo(
             print_failures(files, verbose=verbose)
             for trace in get_traces(job):
                 print(trace)
-        print_extra(job)
+            print_extra(job)
 
 
 def print_failures(logs: list[str], verbose: bool = False) -> None:

@@ -60,7 +60,9 @@ def get_job_id(url: str, params: dict[str, list[str]]) -> int | None:
     return data[-1]["id"]
 
 
-def get_job(url: str, full: bool = False) -> Job | None:
+def get_job(
+    url: str, include_comments: bool = False, details: bool = False
+) -> Job | None:
     """
     Get a job
     """
@@ -74,7 +76,7 @@ def get_job(url: str, full: bool = False) -> Job | None:
         return None
 
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}"
-    if full:
+    if details:
         api_url = f"{api_url}/details"
     info = get_json(api_url, key="job")
     if info is None:
@@ -100,7 +102,7 @@ def get_job(url: str, full: bool = False) -> Job | None:
         )
 
     comments: list[Comment] = []
-    if full:
+    if include_comments:
         api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/{job_id}/comments"
         data = get_json(api_url)
         if data is None:

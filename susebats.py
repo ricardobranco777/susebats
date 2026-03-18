@@ -98,7 +98,7 @@ def list_jobs(timing: bool = False, verbose: bool = False) -> None:
 
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
-            lambda u: get_job(u, full=verbose),
+            lambda u: get_job(u, include_comments=verbose, details=verbose),
             urls,
         ):
             if job is None:
@@ -225,7 +225,7 @@ def print_jobinfo(
     """
     Print job info
     """
-    job = get_job(url, full=True)
+    job = get_job(url, include_comments=True, details=True)
     if job is None:
         sys.exit(f"ERROR: {url}")
 
@@ -350,7 +350,7 @@ def print_jobgroup(url: str, verbose: bool = False) -> None:
     jobs = []
     with ThreadPoolExecutor(max_workers=len(urls)) as executor:
         for job in executor.map(
-            lambda u: get_job(u, full=verbose),
+            lambda u: get_job(u, include_comments=verbose, details=verbose),
             urls,
         ):
             if job is not None:

@@ -19,7 +19,7 @@ class Build:
     build: str
     date: datetime
     distri: str
-    group_id: int
+    groupid: int
     version: str
 
 
@@ -28,9 +28,9 @@ def get_builds(url: str) -> list[Build]:
     Get builds
     """
     urlx = urlparse(url)
-    group_id = int(os.path.basename(urlx.path))
+    groupid = int(os.path.basename(urlx.path))
     api_url = (
-        f"{urlx.scheme}://{urlx.netloc}/api/v1/job_groups/{group_id}/build_results"
+        f"{urlx.scheme}://{urlx.netloc}/api/v1/job_groups/{groupid}/build_results"
     )
     data = get_json(api_url, key="build_results")
     assert isinstance(data, list)
@@ -39,7 +39,7 @@ def get_builds(url: str) -> list[Build]:
             build=item["build"],
             date=datetime.fromisoformat(item["date"]),
             distri=list(item["distris"].keys()).pop(),
-            group_id=group_id,
+            groupid=groupid,
             version=item["version"],
         )
         for item in data

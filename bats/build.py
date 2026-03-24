@@ -7,6 +7,7 @@ from dataclasses import asdict, dataclass
 from datetime import datetime
 from urllib.parse import urlencode, urlparse
 
+from bats.const import JOB_STATES, JOB_RESULTS
 from bats.requests import get_json
 
 
@@ -46,11 +47,21 @@ def get_builds(url: str) -> list[Build]:
     ]
 
 
-def get_jobs(url: str, build: Build) -> list[dict[str, str]]:
+def get_jobs(
+    url: str, build: Build, result: str = "", state: str = ""
+) -> list[dict[str, str]]:
     """
     Get jobs from build
     """
     extra = asdict(build)
+    if result:
+        if result not in set(JOB_STATES):
+            raise ValueError(f"Invalid result: {result}")
+        extra["result"] = result
+    if state:
+        if state not in set(JOB_RESULTS):
+            raise ValueError(f"Invalid state: {state}")
+        extra["state"] = state
     extra.pop("date")
     urlx = urlparse(url)
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/overview?" + urlencode(extra)

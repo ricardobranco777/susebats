@@ -55,11 +55,11 @@ def get_jobs(
     """
     extra = asdict(build)
     if result:
-        if result not in set(JOB_STATES):
+        if result not in set(JOB_RESULTS):
             raise ValueError(f"Invalid result: {result}")
         extra["result"] = result
     if state:
-        if state not in set(JOB_RESULTS):
+        if state not in set(JOB_STATES):
             raise ValueError(f"Invalid state: {state}")
         extra["state"] = state
     extra.pop("date")

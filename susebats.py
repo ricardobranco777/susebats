@@ -37,7 +37,7 @@ def main() -> None:
         "-l", "--list", action="store_true", help="list openQA testsuites"
     )
     parser.add_argument(
-        "-s", "--skipped", action="count", help="print only skipped tests"
+        "-s", "--skipped", action="store_true", help="print only skipped tests"
     )
     parser.add_argument(
         "-t", "--timing", action="store_true", help="timing information"

@@ -29,9 +29,7 @@ def get_builds(url: str) -> list[Build]:
     """
     urlx = urlparse(url)
     groupid = int(os.path.basename(urlx.path))
-    api_url = (
-        f"{urlx.scheme}://{urlx.netloc}/api/v1/job_groups/{groupid}/build_results"
-    )
+    api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/job_groups/{groupid}/build_results"
     data = get_json(api_url, key="build_results")
     assert isinstance(data, list)
     return [

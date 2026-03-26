@@ -123,6 +123,7 @@ def print_job(job: Job, timing: bool = False, verbose: bool = False) -> None:
     runtime = job.settings.get("OCI_RUNTIME", "")
     if runtime:
         package = f"{package}+{runtime}"
+    status = job.result if job.result != "none" else job.state
     status = job.result.upper() if job.result == "failed" else job.result
     status = status.split("_")[-1]
     if timing:

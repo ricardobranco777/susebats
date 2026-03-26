@@ -32,11 +32,12 @@ class Job:  # pylint: disable=too-many-instance-attributes
 
     name: str
     url: str
-    result: str
     cloned_as: str
     cloned_from: str
     seconds: int
     logs: list[str]
+    result: str
+    state: str
     results: list[dict]
     settings: dict[str, str]
     comments: list[Comment]
@@ -125,14 +126,15 @@ def get_job(
             )
 
     return Job(
-        name=info["name"],
-        url=url,
-        logs=logs,
-        result=info["result"] if info["result"] != "none" else info["state"],
         cloned_as=info["clone_id"],
         cloned_from=info["origin_id"],
-        seconds=seconds,
-        results=info.get("testresults", []),
-        settings=info["settings"],
         comments=comments,
+        logs=logs,
+        name=info["name"],
+        result=info["result"],
+        results=info.get("testresults", []),
+        seconds=seconds,
+        settings=info["settings"],
+        state=info["state"],
+        url=url,
     )

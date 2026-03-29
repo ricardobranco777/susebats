@@ -13,7 +13,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime, timedelta
 from itertools import chain
 
-from bats.build import get_builds, get_jobs
+from bats.build import get_builds, get_build_jobs
 from bats.job import get_job, Job
 from bats.junit import get_failures, get_skipped, get_timings
 from bats.repos import REPOS, get_tests, get_urls
@@ -337,7 +337,7 @@ def print_jobgroup(url: str, verbose: bool = False) -> None:
     urls = []
     with ThreadPoolExecutor(max_workers=len(builds)) as executor:
         for results in executor.map(
-            lambda b: get_jobs(url, b),
+            lambda b: get_build_jobs(url, b),
             builds,
         ):
             urls.extend(

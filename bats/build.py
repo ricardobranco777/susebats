@@ -44,7 +44,7 @@ def get_builds(url: str) -> list[Build]:
     ]
 
 
-def get_jobs(url: str, build: Build, **kwargs) -> list[dict[str, str]]:
+def get_build_jobs(url: str, build: Build, **kwargs) -> list[dict[str, str]]:
     """
     Get jobs from build
     Valid kwargs: result, state, groupid, etc

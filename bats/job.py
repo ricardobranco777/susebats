@@ -138,3 +138,55 @@ def get_job(
         state=info["state"],
         url=url,
     )
+
+
+def get_jobs(url: str, ids: list[int]) -> list[Job]:
+    """
+    Get (less) info on a list of jobs with a single request
+    """
+    if not url.startswith(("http:", "https:")):
+        url = f"https://{url}"
+    urlx = urlparse(url)
+
+    api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs?ids=" + ",".join(
+        map(str, ids)
+    )
+    data = get_json(api_url, key="jobs")
+    if data is None:
+        return []
+    assert isinstance(data, list)
+
+    jobs = []
+    for info in data:
+        job_id = info["id"]
+        url = f"{urlx.scheme}://{urlx.netloc}/tests/{job_id}"
+
+        for key in ("clone_id", "origin_id"):
+            info[key] = urljoin(url, str(info[key])) if info.get(key) else ""
+
+        seconds = -1
+        if info["t_started"] and info["t_finished"]:
+            seconds = int(
+                (
+                    datetime.fromisoformat(info["t_finished"])
+                    - datetime.fromisoformat(info["t_started"])
+                ).total_seconds()
+            )
+
+        jobs.append(
+            Job(
+                cloned_as=info["clone_id"],
+                cloned_from=info["origin_id"],
+                comments=[],
+                logs=[],
+                name=info["name"],
+                result=info["result"],
+                results=info.get("testresults", []),
+                seconds=seconds,
+                settings=info["settings"],
+                state=info["state"],
+                url=url,
+            )
+        )
+
+    return jobs

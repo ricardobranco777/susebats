@@ -5,6 +5,7 @@ susebats
 
 import argparse
 import contextlib
+import os
 import re
 import sys
 import tempfile
@@ -14,7 +15,7 @@ from datetime import datetime, timedelta
 from itertools import chain
 
 from bats.build import get_builds, get_build_jobs
-from bats.job import get_job, Job
+from bats.job import get_job, get_jobs, Job
 from bats.junit import get_failures, get_skipped, get_timings
 from bats.repos import REPOS, get_tests, get_urls
 from bats.requests import download_file, ping
@@ -351,14 +352,17 @@ def print_jobgroup(url: str, verbose: bool = False) -> None:
                 ]
             )
 
-    jobs = []
-    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
-        for job in executor.map(
-            lambda u: get_job(u, include_comments=verbose, details=verbose),
-            urls,
-        ):
-            if job is not None:
-                jobs.append(job)
+    jobs: list[Job] = []
+    if verbose:
+        with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+            for job in executor.map(
+                lambda u: get_job(u, include_comments=verbose, details=verbose),
+                urls,
+            ):
+                if job is not None:
+                    jobs.append(job)
+    else:
+        jobs = get_jobs(urls[0], list(map(int, map(os.path.basename, urls))))
     jobs.sort(
         key=lambda j: (j.settings["BUILD"], j.settings["ARCH"], j.settings["TEST"])
     )

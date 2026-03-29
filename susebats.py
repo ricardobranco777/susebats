@@ -332,7 +332,10 @@ def print_jobgroup(url: str, verbose: bool = False) -> None:
     Print job group
     """
     now = datetime.now()
-    builds = list(filter(lambda b: now - b.date < timedelta(days=3), get_builds(url)))
+    builds = list(filter(lambda b: now - b.date < timedelta(days=10), get_builds(url)))
+
+    if not builds:
+        return
 
     urls = []
     with ThreadPoolExecutor(max_workers=len(builds)) as executor:

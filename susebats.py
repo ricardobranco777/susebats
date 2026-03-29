@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 from itertools import chain
 
 from bats.build import get_builds, get_build_jobs
-from bats.job import get_job, get_jobs, Job
+from bats.job import get_job_id, get_job, get_jobs, Job
 from bats.junit import get_failures, get_skipped, get_timings
 from bats.repos import REPOS, get_tests, get_urls
 from bats.requests import download_file, ping
@@ -100,20 +100,34 @@ def list_jobs(timing: bool = False, verbose: bool = False) -> None:
     if len(repos) == 0:
         return
 
-    urls = []
-    with ThreadPoolExecutor(max_workers=len(repos)) as executor:
-        for results in executor.map(get_urls, repos):
-            urls.extend(results)
-    urls.sort()
-
-    with ThreadPoolExecutor(max_workers=len(urls)) as executor:
-        for job in executor.map(
-            lambda u: get_job(u, include_comments=verbose, details=verbose),
-            urls,
-        ):
-            if job is None:
+    if verbose:
+        urls = []
+        with ThreadPoolExecutor(max_workers=len(repos)) as executor:
+            for results in executor.map(get_urls, repos):
+                urls.extend(results)
+        urls.sort()
+        with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+            for job in executor.map(
+                lambda u: get_job(u, include_comments=True, details=True),
+                urls,
+            ):
+                if job is None:
+                    continue
+                print_job(job, timing=timing, verbose=verbose)
+    else:
+        for repo in repos:
+            assert isinstance(repo, str)
+            ids = []
+            urls = get_urls(repo)
+            if urls is None:
                 continue
-            print_job(job, timing=timing, verbose=verbose)
+            with ThreadPoolExecutor(max_workers=len(urls)) as executor:
+                for jobid in executor.map(get_job_id, urls):
+                    if jobid is None:
+                        continue
+                    ids.append(jobid)
+            for job in get_jobs(urls[0], ids):
+                print_job(job, timing=timing)
 
 
 def print_job(job: Job, timing: bool = False, verbose: bool = False) -> None:

@@ -43,7 +43,7 @@ class Job:  # pylint: disable=too-many-instance-attributes
     comments: list[Comment]
 
 
-def get_job_id(url: str, params: dict[str, list[str]]) -> int | None:
+def get_job_id(url: str) -> int | None:
     """
     Get job ID from URL with no job ID in URL
     """
@@ -52,6 +52,7 @@ def get_job_id(url: str, params: dict[str, list[str]]) -> int | None:
         return int(os.path.basename(urlx.path).removeprefix("t"))
 
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/"
+    params: dict[str, list[str]] = parse_qs(urlx.query)
     data = get_json(api_url, params=params, key="jobs")
     if data is None or len(data) == 0:
         return None
@@ -68,9 +69,7 @@ def get_job(
     Get a job
     """
     urlx = urlparse(url)
-
-    params: dict[str, list[str]] = parse_qs(urlx.query)
-    job_id = get_job_id(url, params=params)
+    job_id = get_job_id(url)
     if job_id is None:
         return None
 

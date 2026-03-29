@@ -134,7 +134,8 @@ def print_job(job: Job, timing: bool = False, verbose: bool = False) -> None:
     if runtime:
         package = f"{package}+{runtime}"
     status = job.result if job.result != "none" else job.state
-    status = job.result.upper() if job.result == "failed" else job.result
+    status = status.upper() if status == "failed" else status
+    # Transform "parallel_failed" to "failed" and "timeout_exceeded" to "exceeded"
     status = status.split("_")[-1]
     if timing:
         print(job.seconds, end="\t")

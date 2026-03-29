@@ -25,6 +25,15 @@ VERSION = "1.9"
 EXTRA = re.compile(r"-(container_host_)?[a-z]+_(rootless_)?(e2e|testsuite).*$")
 
 
+def scheme_url(url: str) -> str:
+    """
+    Prepend a scheme to an URL if not present
+    """
+    if not url.startswith(("http:", "https:")):
+        url = f"https://{url}"
+    return url
+
+
 def main() -> None:
     """
     Main function
@@ -47,7 +56,7 @@ def main() -> None:
         "-v", "--verbose", action="store_true", help="verbose operation"
     )
     parser.add_argument("--version", action="version", version=VERSION)
-    parser.add_argument("url", nargs="?", help="openQA job")
+    parser.add_argument("url", nargs="?", help="openQA job", type=scheme_url)
     args = parser.parse_args()
 
     if args.list:

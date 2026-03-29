@@ -67,8 +67,6 @@ def get_job(
     """
     Get a job
     """
-    if not url.startswith(("http:", "https:")):
-        url = f"https://{url}"
     urlx = urlparse(url)
 
     params: dict[str, list[str]] = parse_qs(urlx.query)
@@ -144,8 +142,6 @@ def get_jobs(url: str, ids: list[int]) -> list[Job]:
     """
     Get (less) info on a list of jobs with a single request
     """
-    if not url.startswith(("http:", "https:")):
-        url = f"https://{url}"
     urlx = urlparse(url)
 
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs?ids=" + ",".join(

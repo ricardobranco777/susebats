@@ -144,9 +144,8 @@ def get_jobs(url: str, ids: list[int]) -> list[Job]:
     """
     urlx = urlparse(url)
 
-    api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs?ids=" + ",".join(
-        map(str, ids)
-    )
+    query = "ids=" + ",".join(map(str, ids))
+    api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs?{query}"
     data = get_json(api_url, key="jobs")
     if data is None:
         return []

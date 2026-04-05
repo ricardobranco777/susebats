@@ -11,6 +11,7 @@ from urllib3.util.retry import Retry
 import requests
 from requests.adapters import HTTPAdapter
 from requests.exceptions import RequestException
+from requests.utils import parse_header_links
 
 try:
     from requests_toolbelt.utils import dump  # type: ignore
@@ -75,24 +76,32 @@ def get_file(url: str) -> str | None:
 
 
 def get_json(
-    url: str,
-    headers: dict | None = None,
-    params: dict | None = None,
-    key: str | None = None,
+    url: str | None, method: str = "GET", key: str | None = None, **kwargs
 ) -> dict | list[dict] | None:
     """
-    Get JSON
+    Get JSON following pagination via Link header if present
     """
-    try:
-        got = session.get(url, headers=headers, params=params, timeout=TIMEOUT)
-        got.raise_for_status()
-        data = got.json()
-    except RequestException as error:
-        logging.error("%s: %s", url, error)
-        return None
-    if key is not None:
-        return data[key]
-    return data
+    results = []
+    while url:
+        try:
+            got = session.request(method, url, timeout=TIMEOUT, **kwargs)
+            got.raise_for_status()
+            data = got.json()
+        except RequestException as error:
+            logging.error("%s: %s", url, error)
+            return None
+
+        page = data[key] if key is not None else data
+        if method != "GET" or not isinstance(page, list):
+            return page
+        results.extend(page)
+
+        if "Link" not in got.headers:
+            break
+        links = parse_header_links(got.headers["Link"])
+        url = next((x["url"] for x in links if x.get("rel") == "next"), None)
+
+    return results
 
 
 def ping(url: str, timeout: int = 5) -> bool:

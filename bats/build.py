@@ -32,7 +32,7 @@ def get_builds(url: str) -> list[Build]:
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/job_groups/{groupid}/build_results"
     params: dict[str, int | str] = {}
     # params["time_limit_days"] = 10
-    data = get_json(api_url, params=params, key="build_results")
+    data = get_json(api_url, key="build_results", params=params)
     assert isinstance(data, list)
     return [
         Build(

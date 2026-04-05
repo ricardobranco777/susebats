@@ -122,7 +122,7 @@ def get_jira_issue(url: str) -> Issue | None:
         "fields": "summary",
         "jql": f"key in ({issue})",
     }
-    data = get_json(api_url, headers=headers, params=params, key="issues")
+    data = get_json(api_url, key="issues", headers=headers, params=params)
     if data is None:
         return None
     assert isinstance(data, list)
@@ -137,7 +137,7 @@ def get_redmine_issue(url: str) -> Issue | None:
         return None
     api_url = f"{url}.json"
     headers = {"X-Redmine-API-Key": REDMINE_TOKEN}
-    data = get_json(api_url, headers=headers, key="issue")
+    data = get_json(api_url, key="issue", headers=headers)
     if data is None:
         return None
     assert isinstance(data, dict)

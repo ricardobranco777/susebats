@@ -53,7 +53,7 @@ def get_job_id(url: str) -> int | None:
 
     api_url = f"{urlx.scheme}://{urlx.netloc}/api/v1/jobs/"
     params: dict[str, list[str]] = parse_qs(urlx.query)
-    data = get_json(api_url, params=params, key="jobs")
+    data = get_json(api_url, key="jobs", params=params)
     if data is None or len(data) == 0:
         return None
     for job in reversed(data):

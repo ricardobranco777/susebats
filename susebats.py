@@ -5,6 +5,7 @@ susebats
 
 import argparse
 import contextlib
+import logging
 import os
 import re
 import sys
@@ -38,6 +39,7 @@ def main() -> None:
     """
     Main function
     """
+    logging.basicConfig(format="%(levelname)-8s %(message)s", stream=sys.stderr)
 
     parser = argparse.ArgumentParser(
         prog="susebats",

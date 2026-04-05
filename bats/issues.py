@@ -2,8 +2,8 @@
 Services module
 """
 
+import logging
 import os
-import sys
 from dataclasses import dataclass
 from urllib.parse import urljoin, urlparse
 
@@ -51,7 +51,7 @@ def get_bugzilla_issue(url: str) -> Issue | None:
     except RequestException as exc:
         # Prevent API key leaking in the URL
         error = str(exc).split("?", maxsplit=1)[0]
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        logging.error("%s: %s", url, error)
         return None
     if len(data) < 1:
         return None

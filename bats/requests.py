@@ -3,6 +3,7 @@ session module
 """
 
 import atexit
+import logging
 import os
 import sys
 from urllib3.util.retry import Retry
@@ -55,7 +56,7 @@ def download_file(url: str) -> str | None:
                 for chunk in r.iter_content(chunk_size=8192):
                     f.write(chunk)
     except RequestException as error:
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        logging.error("%s: %s", url, error)
         return None
     return filename
 
@@ -68,7 +69,7 @@ def get_file(url: str) -> str | None:
         got = session.get(url, timeout=TIMEOUT)
         got.raise_for_status()
     except RequestException as error:
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        logging.error("%s: %s", url, error)
         return None
     return got.text
 
@@ -87,7 +88,7 @@ def get_json(
         got.raise_for_status()
         data = got.json()
     except RequestException as error:
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        logging.error("%s: %s", url, error)
         return None
     if key is not None:
         return data[key]
@@ -103,7 +104,7 @@ def post(url: str, data: dict, key: str | None = None) -> dict | None:
         got.raise_for_status()
         data = got.json()
     except RequestException as error:
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        logging.error("%s: %s", url, error)
         return None
     if key is not None:
         return data[key]

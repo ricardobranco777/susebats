@@ -3,9 +3,9 @@ Repos module
 """
 
 import io
+import logging
 import os
 import re
-import sys
 import tarfile
 from dataclasses import dataclass, field
 from pathlib import PurePath
@@ -102,7 +102,7 @@ def grep_tarball(
         response = requests.get(url, headers=headers, stream=True, timeout=10)
         response.raise_for_status()
     except RequestException as error:
-        print(f"ERROR: {url}: {error}")
+        logging.error("%s: %s", url, error)
         return
     data = io.BytesIO(response.content)
     try:
@@ -118,7 +118,7 @@ def grep_tarball(
                         yield elem.name, file.read().decode()
     except tarfile.ReadError as error:
         # May fail because GITLAB_TOKEN is not set
-        print(f"ERROR: {url}: {error}", file=sys.stderr)
+        logging.error("%s: %s", url, error)
 
 
 def is_upstream_test(product: str, test: dict[str, str]) -> bool:

@@ -30,6 +30,7 @@ adapter = HTTPAdapter(
     pool_connections=200,
     pool_maxsize=200,
 )
+session.headers.update({"User-Agent": "susebats"})
 session.mount("https://", adapter)
 
 TIMEOUT = 60

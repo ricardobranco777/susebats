@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 IMAGE="${IMAGE:-ghcr.io/ricardobranco777/susebats:latest}"
 
@@ -22,11 +22,16 @@ if [ -z "$RUNTIME" ]; then
 	fi
 fi
 
+# Do not use sudo if we're in docker group
+if [[ $RUNTIME =~ docker ]] && id -Gn | grep -qw docker; then
+	SUDO=
+fi
+
 if [ "$1" = "--version" ] ; then
 	latest=$(curl -s https://api.github.com/repos/ricardobranco777/susebats/tags | jq -Mr '.[0].name')
-	if [ "${latest#v}" != "$("$SUDO" "$RUNTIME" run --rm "$IMAGE" --version)" ] ; then
+	if [ "${latest#v}" != "$($SUDO "$RUNTIME" run --rm "$IMAGE" --version)" ] ; then
 		echo "Latest version available: $latest" >&2
 	fi
 fi
 
-exec "$SUDO" "$RUNTIME" run --rm --security-opt no-new-privileges -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e JIRA_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"
+exec $SUDO "$RUNTIME" run --rm --security-opt no-new-privileges -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e JIRA_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"

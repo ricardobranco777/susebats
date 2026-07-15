@@ -1,13 +1,32 @@
 #!/bin/sh
 
-DOCKER="${DOCKER:-podman}"
 IMAGE="${IMAGE:-ghcr.io/ricardobranco777/susebats:latest}"
+
+DOCKER=$(command -v docker)
+PODMAN=$(command -v podman)
+
+# We need unprivileged user namespaces for rootless containers
+if unshare -U true >/dev/null 2>&1; then
+        SUDO=
+else
+        SUDO=${SUDO:-$(command -v sudo)}
+fi
+
+# Use Docker if unprivileged user namespaces are disabled and
+# the socket exists, otherwise use podman if available
+if [ -z "$RUNTIME" ]; then
+        if [ -n "$SUDO" ] && [ -S /var/run/docker.sock ]; then
+                RUNTIME=$DOCKER
+        else
+                RUNTIME=${PODMAN:-$DOCKER}
+        fi
+fi
 
 if [ "$1" = "--version" ] ; then
 	latest=$(curl -s https://api.github.com/repos/ricardobranco777/susebats/tags | jq -Mr '.[0].name')
-	if [ "${latest#v}" != "$("$DOCKER" run --rm "$IMAGE" --version)" ] ; then
+	if [ "${latest#v}" != "$("$SUDO" "$RUNTIME" run --rm "$IMAGE" --version)" ] ; then
 		echo "Latest version available: $latest" >&2
 	fi
 fi
 
-exec "$DOCKER" run --rm -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e JIRA_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"
+exec "$SUDO" "$RUNTIME" run --rm -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e JIRA_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"

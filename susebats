@@ -27,11 +27,23 @@ if [[ $RUNTIME =~ docker ]] && id -Gn | grep -qw docker; then
 	SUDO=
 fi
 
+opts=(
+	--cap-drop=ALL
+	--read-only
+	--rm
+	--security-opt=no-new-privileges
+	--user "$(id -u):$(id -g)"
+)
+
 if [ "$1" = "--version" ] ; then
 	latest=$(curl -s https://api.github.com/repos/ricardobranco777/susebats/tags | jq -Mr '.[0].name')
-	if [ "${latest#v}" != "$($SUDO "$RUNTIME" run --rm "$IMAGE" --version)" ] ; then
+	if [ "${latest#v}" != "$($SUDO "$RUNTIME" run "${opts[@]}" "$IMAGE" --version)" ] ; then
 		echo "Latest version available: $latest" >&2
 	fi
 fi
 
-exec $SUDO "$RUNTIME" run --rm --security-opt no-new-privileges -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e JIRA_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"
+if [ -n "$SUDO" ]; then
+	SUDO="$SUDO --preserve-env=DEBUG,BUGZILLA_TOKEN,GITHUB_TOKEN,GITLAB_TOKEN,JIRA_TOKEN,REDMINE_TOKEN,REPOS"
+fi
+
+exec $SUDO "$RUNTIME" run "${opts[@]}" -e DEBUG -e BUGZILLA_TOKEN -e GITHUB_TOKEN -e GITLAB_TOKEN -e JIRA_TOKEN -e REDMINE_TOKEN -e REPOS "$IMAGE" "$@"
